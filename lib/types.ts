@@ -1,4 +1,4 @@
-export type ContentStatus = "pending" | "approved" | "rejected" | "removed";
+export type ContentStatus = "pending" | "approved" | "rejected" | "removed" | "needs_revision";
 export type RequestStatus = "received" | "investigating" | "resolved";
 export type TargetType = "place" | "review";
 

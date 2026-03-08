@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText, sanitizeText } from "@/lib/sanitize";
 import { REPORT_REASONS } from "@/lib/types";
+import { sendAdminNotification } from "@/lib/notifications";
 
 const VALID_REASONS = REPORT_REASONS as unknown as string[];
 
@@ -35,6 +36,8 @@ export async function POST(req: Request) {
   const ua = req.headers.get("user-agent") ?? "";
   const supabase = createAdminClient();
   const targetTable = d.target_type === "place" ? "places" : "reviews";
+  const reason = sanitizeShortText(d.reason);
+  const detail = d.detail ? sanitizeText(d.detail) : null;
 
   const { data: target, error: targetError } = await supabase
     .from(targetTable)
@@ -53,13 +56,25 @@ export async function POST(req: Request) {
   const { error } = await supabase.from("reports").insert({
     target_type:  d.target_type,
     target_id:    d.target_id,
-    reason:       sanitizeShortText(d.reason),
-    detail:       d.detail ? sanitizeText(d.detail) : null,
+    reason,
+    detail,
     reporter_ip:  ip,
     reporter_ua:  ua.slice(0, 500),
     status:       "received",
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await sendAdminNotification({
+    subject: "[バイト体験談マップ] 新しい通報",
+    lines: [
+      "新しい通報を受け付けました。",
+      `対象種別: ${d.target_type}`,
+      `対象ID: ${d.target_id}`,
+      `理由: ${reason}`,
+      `詳細: ${detail ?? "なし"}`,
+    ],
+  });
+
   return NextResponse.json({ ok: true }, { status: 201 });
 }

@@ -1,15 +1,19 @@
 import Link from "next/link";
+import { SUBMISSION_AREA_LABEL } from "@/lib/siteConfig";
 
 export default function GuidelinesPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8 prose prose-sm">
       <h1>投稿ガイドライン</h1>
-      <p className="text-gray-500 text-sm">最終更新: 2026年2月</p>
+      <p className="text-gray-500 text-sm">最終更新: 2026年3月</p>
 
       <h2>このサービスについて</h2>
       <p>
         本サービスは、アルバイト・パートの体験談を主観として共有するプラットフォームです。
         投稿内容はユーザー個人の体験・意見であり、運営は内容の正確性を保証しません。
+      </p>
+      <p>
+        現在の投稿対象エリアは <strong>{SUBMISSION_AREA_LABEL}</strong> です。対象外エリアの勤務先は受け付けません。
       </p>
 
       <h2>投稿できること</h2>
@@ -25,6 +29,7 @@ export default function GuidelinesPage() {
         <li>断定的な表現による名誉毀損（「〜は違法だ」「〜は詐欺だ」等）</li>
         <li>差別的・脅迫的・侮辱的な表現</li>
         <li>虚偽の情報・誇張した表現</li>
+        <li>未払い・違法・犯罪などの断定を並べる投稿</li>
         <li>同一企業・店舗への繰り返し投稿（スパム）</li>
         <li>商業目的・広告目的の投稿</li>
       </ul>
@@ -40,14 +45,22 @@ export default function GuidelinesPage() {
       <h2>投稿の取り扱い</h2>
       <p>
         投稿は管理者が確認した後に公開されます。ガイドラインに反する投稿は
-        公開されないか、非公開化される場合があります。
+        公開されないか、要修正・非公開化・削除となる場合があります。
+      </p>
+
+      <h2>ログの保持</h2>
+      <p>
+        不正投稿対策と削除申請・開示対応のため、投稿時の内部識別子、IPアドレス、ユーザーエージェント、作成時刻を保存します。
+        これらは公開されません。
       </p>
 
       <h2>削除申請・訂正について</h2>
       <p>
         投稿内容に問題がある場合は、
         <Link href="/takedown">削除申請フォーム</Link>
-        よりご連絡ください。
+        よりご連絡ください。当事者・企業からの反論や訂正は
+        <Link href="/official-response">当事者コメント送信フォーム</Link>
+        から受け付け、管理者確認後に掲載します。
       </p>
     </main>
   );

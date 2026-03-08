@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { ContentStatusBadge } from "@/components/admin/StatusBadge";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
+import { getLatestModerationNotes } from "@/lib/adminNotes";
 import type { Review } from "@/lib/types";
 
 export default async function AdminReviewsPage() {
@@ -9,16 +10,19 @@ export default async function AdminReviewsPage() {
   const { data: reviews } = await supabase
     .from("reviews")
     .select("*, places(name, address)")
-    .in("status", ["pending", "approved", "rejected"])
+    .in("status", ["pending", "approved", "rejected", "removed", "needs_revision"])
     .order("created_at", { ascending: false })
     .limit(100);
+
+  const reviewIds = (reviews ?? []).map((review: { id: string }) => review.id);
+  const noteMap = await getLatestModerationNotes("review", reviewIds);
 
   return (
     <div className="max-w-5xl">
       <h1 className="text-xl font-bold text-gray-900 mb-6">体験談キュー</h1>
 
       {(reviews ?? []).length === 0 ? (
-        <p className="text-gray-500">承認待ちの体験談はありません。</p>
+        <p className="text-gray-500">対象の体験談はありません。</p>
       ) : (
         <div className="space-y-4">
           {(reviews as (Review & { places: { name: string; address: string } | null })[]).map((review) => (
@@ -48,7 +52,13 @@ export default async function AdminReviewsPage() {
 
               <p className="text-sm text-gray-700 whitespace-pre-line mb-4">{review.body}</p>
 
-              {review.status === "pending" && (
+              {noteMap.get(review.id) && (
+                <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900">
+                  直近の管理メモ: {noteMap.get(review.id)}
+                </div>
+              )}
+
+              {review.status !== "removed" && (
                 <AdminReviewActions id={review.id} />
               )}
             </div>

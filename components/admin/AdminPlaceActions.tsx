@@ -8,8 +8,9 @@ export function AdminPlaceActions({ id }: { id: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [notes, setNotes] = useState("");
 
-  async function update(status: "approved" | "rejected") {
+  async function update(status: "approved" | "rejected" | "removed" | "needs_revision") {
     setLoading(status);
     setError("");
 
@@ -17,7 +18,7 @@ export function AdminPlaceActions({ id }: { id: string }) {
       const res = await fetch(`/api/admin/places/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, admin_notes: notes || undefined }),
       });
 
       if (!res.ok) {
@@ -34,6 +35,12 @@ export function AdminPlaceActions({ id }: { id: string }) {
 
   return (
     <div className="space-y-2">
+      <input
+        className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400"
+        placeholder="管理メモ（要修正・却下理由など）"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+      />
       <div className="flex gap-2">
         <button
           onClick={() => update("approved")}
@@ -43,11 +50,25 @@ export function AdminPlaceActions({ id }: { id: string }) {
           {loading === "approved" ? "…" : "✅ 承認・公開"}
         </button>
         <button
+          onClick={() => update("needs_revision")}
+          disabled={loading !== null}
+          className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-md"
+        >
+          {loading === "needs_revision" ? "…" : "✏️ 要修正"}
+        </button>
+        <button
           onClick={() => update("rejected")}
           disabled={loading !== null}
           className="bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-md"
         >
           {loading === "rejected" ? "…" : "🚫 却下"}
+        </button>
+        <button
+          onClick={() => update("removed")}
+          disabled={loading !== null}
+          className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-medium px-3 py-1.5 rounded-md"
+        >
+          {loading === "removed" ? "…" : "🗑 削除"}
         </button>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

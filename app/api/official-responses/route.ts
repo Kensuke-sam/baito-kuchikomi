@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeText } from "@/lib/sanitize";
+import { sendAdminNotification } from "@/lib/notifications";
 
 const schema = z.object({
   place_id: z.string().uuid(),
@@ -29,6 +30,7 @@ export async function POST(req: Request) {
   const d = parsed.data;
   const ua = req.headers.get("user-agent") ?? "";
   const supabase = createAdminClient();
+  const responseBody = sanitizeText(d.body);
 
   const { data: place, error: placeError } = await supabase
     .from("places")
@@ -46,12 +48,22 @@ export async function POST(req: Request) {
 
   const { error } = await supabase.from("official_responses").insert({
     place_id:   d.place_id,
-    body:       sanitizeText(d.body),
+    body:       responseBody,
     status:     "pending",
     sender_ip:  ip,
     sender_ua:  ua.slice(0, 500),
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await sendAdminNotification({
+    subject: "[バイト体験談マップ] 新しい当事者コメント",
+    lines: [
+      "新しい当事者コメントを受け付けました。",
+      `勤務先ID: ${d.place_id}`,
+      `本文: ${responseBody}`,
+    ],
+  });
+
   return NextResponse.json({ ok: true }, { status: 201 });
 }

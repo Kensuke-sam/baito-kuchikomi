@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import type { Place } from "@/lib/types";
 
@@ -22,20 +22,31 @@ export default function Map({ places, onPlaceClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [mapError, setMapError] = useState("");
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!token) {
+      setMapError("地図設定が未完了のため、一覧ページから確認してください。");
+      return;
+    }
 
-    mapRef.current = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [139.7103, 35.7281], // 池袋
-      zoom: 13,
-    });
+    try {
+      mapboxgl.accessToken = token;
 
-    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+      mapRef.current = new mapboxgl.Map({
+        container: containerRef.current,
+        style: "mapbox://styles/mapbox/light-v11",
+        center: [139.7103, 35.7281], // 池袋
+        zoom: 13,
+      });
+
+      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+    } catch {
+      setMapError("地図の初期化に失敗しました。少し時間を置いて再読み込みしてください。");
+    }
 
     return () => {
       mapRef.current?.remove();
@@ -98,6 +109,14 @@ export default function Map({ places, onPlaceClick }: Props) {
       mapRef.current.once("load", addMarkers);
     }
   }, [addMarkers]);
+
+  if (mapError) {
+    return (
+      <div className="flex h-full items-center justify-center bg-gray-50 px-6 text-center text-sm text-gray-600">
+        {mapError}
+      </div>
+    );
+  }
 
   return <div ref={containerRef} className="w-full h-full" />;
 }

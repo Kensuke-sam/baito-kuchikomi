@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getAdminAuthResult } from "@/lib/adminAuth";
+import { sanitizeText } from "@/lib/sanitize";
 
 const schema = z.object({
-  status: z.enum(["approved", "rejected", "removed"]),
+  status: z.enum(["approved", "rejected", "removed", "needs_revision"]),
+  admin_notes: z.string().max(500).optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -28,6 +30,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 422 });
   }
+  if (parsed.data.status === "needs_revision" && !parsed.data.admin_notes?.trim()) {
+    return NextResponse.json({ error: "要修正にする場合は管理メモを入力してください。" }, { status: 422 });
+  }
 
   const { data: existingPlace, error: existingError } = await admin
     .from("places")
@@ -47,11 +52,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
+
   const { error: auditError } = await admin.from("audit_logs").insert({
     admin_id:    auth.user.id,
     action:      `${parsed.data.status}_place`,
     target_type: "place",
     target_id:   id,
+    detail:      adminNotes ? { notes: adminNotes } : null,
   });
 
   if (auditError) {

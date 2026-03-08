@@ -1,10 +1,11 @@
 import type { ContentStatus, RequestStatus } from "@/lib/types";
 
 const CONTENT_COLORS: Record<ContentStatus, string> = {
-  pending:  "bg-yellow-100 text-yellow-800",
+  pending: "bg-yellow-100 text-yellow-800",
   approved: "bg-green-100 text-green-800",
   rejected: "bg-red-100 text-red-800",
-  removed:  "bg-gray-200 text-gray-600",
+  removed: "bg-gray-200 text-gray-600",
+  needs_revision: "bg-orange-100 text-orange-800",
 };
 
 const REQUEST_COLORS: Record<RequestStatus, string> = {
@@ -14,10 +15,11 @@ const REQUEST_COLORS: Record<RequestStatus, string> = {
 };
 
 const CONTENT_LABELS: Record<ContentStatus, string> = {
-  pending:  "承認待ち",
+  pending: "承認待ち",
   approved: "公開中",
   rejected: "非公開",
-  removed:  "削除済",
+  removed: "削除済",
+  needs_revision: "要修正",
 };
 
 const REQUEST_LABELS: Record<RequestStatus, string> = {
