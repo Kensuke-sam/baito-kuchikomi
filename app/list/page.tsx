@@ -36,7 +36,13 @@ export default async function ListPage({ searchParams }: Props) {
     .order("created_at", { ascending: false });
 
   if (query) {
-    reviewQuery = reviewQuery.or(`title.ilike.%${query}%,body.ilike.%${query}%`);
+    // PostgREST フィルターインジェクション対策: 特殊文字をエスケープ
+    const escaped = query
+      .replace(/\\/g, "\\\\")
+      .replace(/%/g, "\\%")
+      .replace(/_/g, "\\_")
+      .replace(/[,().]/g, "");
+    reviewQuery = reviewQuery.or(`title.ilike.%${escaped}%,body.ilike.%${escaped}%`);
   }
   if (tagFilter) {
     reviewQuery = reviewQuery.contains("tags", [tagFilter]);

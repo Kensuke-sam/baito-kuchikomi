@@ -10,14 +10,16 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+const MAX_STORE_SIZE = 10000;
 
-// 5分ごとに古いエントリを掃除
-setInterval(() => {
+// rateLimit 呼び出し時に期限切れエントリを遅延クリーンアップ
+function cleanupExpired() {
+  if (store.size < MAX_STORE_SIZE) return;
   const now = Date.now();
   for (const [key, entry] of store) {
     if (entry.resetAt < now) store.delete(key);
   }
-}, 5 * 60 * 1000);
+}
 
 /**
  * @param key      IPアドレスなど識別子
@@ -30,6 +32,7 @@ export function rateLimit(
   limit = 5,
   windowMs = 10 * 60 * 1000 // 10分
 ): { allowed: boolean; remaining: number } {
+  cleanupExpired();
   const now = Date.now();
   const entry = store.get(key);
 

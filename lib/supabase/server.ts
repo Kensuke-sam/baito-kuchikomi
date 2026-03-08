@@ -25,8 +25,9 @@ export async function createClient() {
 
 /** service_role キー（管理者API用。クライアントには公開しない） */
 export function createAdminClient() {
-  const { createClient } = require("@supabase/supabase-js");
-  return createClient(
+  // dynamic import ではなく直接 import を使用（サーバーサイド専用）
+  const { createClient: createSupabaseClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }

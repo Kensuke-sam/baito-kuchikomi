@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getAdminAuthResult } from "@/lib/adminAuth";
+import { sanitizeText } from "@/lib/sanitize";
 
 const schema = z.object({
   status:      z.enum(["received", "investigating", "resolved"]),
@@ -41,12 +42,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "対象の通報が見つかりません。" }, { status: 404 });
   }
 
+  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 1000) : null;
+
   const { error } = await admin
     .from("reports")
     .update({
       status:      parsed.data.status,
-      admin_notes: parsed.data.admin_notes ?? null,
-      updated_at:  new Date().toISOString(),
+      admin_notes: adminNotes,
     })
     .eq("id", id);
 

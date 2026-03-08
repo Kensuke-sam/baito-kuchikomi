@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { error } = await supabase
     .from("reviews")
-    .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
+    .update({ status: parsed.data.status })
     .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
