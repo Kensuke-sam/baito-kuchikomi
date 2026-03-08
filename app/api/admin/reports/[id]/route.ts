@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/server";
+import { getAdminAuthResult } from "@/lib/adminAuth";
+
+const schema = z.object({
+  status:      z.enum(["received", "investigating", "resolved"]),
+  admin_notes: z.string().max(1000).optional(),
+});
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await getAdminAuthResult();
+  if (!auth.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!auth.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const admin = createAdminClient();
+
+  const { id } = await params;
+  if (!z.string().uuid().safeParse(id).success) {
+    return NextResponse.json({ error: "不正なIDです。" }, { status: 400 });
+  }
+
+  let body: unknown;
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 422 });
+  }
+
+  const { data: existingReport, error: existingError } = await admin
+    .from("reports")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (!existingReport) {
+    return NextResponse.json({ error: "対象の通報が見つかりません。" }, { status: 404 });
+  }
+
+  const { error } = await admin
+    .from("reports")
+    .update({
+      status:      parsed.data.status,
+      admin_notes: parsed.data.admin_notes ?? null,
+      updated_at:  new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { error: auditError } = await admin.from("audit_logs").insert({
+    admin_id:    auth.user.id,
+    action:      `update_report_status_${parsed.data.status}`,
+    target_type: "report",
+    target_id:   id,
+  });
+
+  if (auditError) {
+    return NextResponse.json({ error: "監査ログの記録に失敗しました。" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
