@@ -56,6 +56,25 @@ function OfficialResponsePageInner() {
     );
   }
 
+  if (!placeId) {
+    return (
+      <main className="max-w-md mx-auto px-4 py-8">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">当事者コメント送信</h1>
+        <p className="text-sm text-gray-600 mb-6">
+          当事者コメントは勤務先詳細ページから対象を指定して送信してください。
+        </p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900 space-y-2">
+          <p className="font-semibold">対象の勤務先が未指定です</p>
+          <p>勤務先詳細ページの「当事者コメントを送る」から進むと、その勤務先に紐づいた形で送信できます。</p>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/list" className="text-blue-600 hover:underline text-sm">口コミ一覧へ</Link>
+          <Link href="/takedown" className="text-blue-600 hover:underline text-sm">削除申請はこちら</Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-md mx-auto px-4 py-8">
       <h1 className="text-xl font-bold text-gray-900 mb-2">当事者コメント送信</h1>

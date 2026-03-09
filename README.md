@@ -1,137 +1,200 @@
-# バイト体験談マップ
+# baito-review.com / バイト体験談マップ
 
-アルバイト・パートの体験談を「主観の口コミ」として共有する、地図つきの口コミプラットフォームです。  
-管理者承認制、削除申請、当事者コメント、内部ログ保持を前提に、公開運用しやすいMVPとして構成しています。
+大学生向けの「ブラックバイト・危険バイト回避」情報サイトです。
+口コミだけでなく、`guides` `jobs` `areas` `apps` のハブ構造を使って、検索流入から問題解決記事へ入り、そこから口コミ比較や求人アフィリエイトへつなぐ設計にしています。
 
-## 設計方針
+この README は 2 つの用途を兼ねています。
 
-### ページ構成
+1. 開発者向けのセットアップ手順
+2. 運営者向けの収益化・SEO・安全運用の手順
 
-- `/` : 承認済み勤務先のマップ表示
-- `/list` : 口コミ一覧とタグ検索
-- `/places/[id]` : 勤務先詳細、承認済み口コミ、当事者コメント
-- `/submit` : 勤務先登録 + 口コミ投稿
-- `/report` : 一般ユーザー向け通報フォーム
-- `/takedown` : 当事者・企業向け削除申請フォーム
-- `/official-response` : 当事者コメント送信フォーム
-- `/guidelines` : 投稿ガイドライン
-- `/terms` : 利用規約・免責事項
-- `/admin/*` : 承認・非公開化・要修正・削除対応の管理画面
+## サイトの目的
 
-### DB 設計
+- ブラックバイトや危険求人を避けたい人に、主観レビューと実践ガイドを提供する
+- 大学生が「今のバイトを辞めたい」「単発でつなぎたい」「次の候補を探したい」ときの判断材料を作る
+- 検索流入を集めて、求人アフィリエイトを主軸に収益化する
+- 断定的な悪評を避け、削除申請・当事者コメント・管理者承認を前提に運営する
 
-- `places` : 勤務先情報。`approved` のみ公開
-- `reviews` : 勤務先に紐づく体験談。IP/UA/内部識別子を保存
-- `reports` : 一般ユーザーの通報
-- `takedown_requests` : 削除申請
-- `official_responses` : 当事者コメント
-- `admins` : 管理者ユーザー
-- `audit_logs` : 管理操作の監査ログ
+## 現在の実装範囲
 
-### RLS 方針
+### ユーザー向けページ
 
-- 一般ユーザーは `approved` の `places` / `reviews` / `official_responses` のみ閲覧可能
-- 一般ユーザーの書き込みは `pending` または専用受付テーブルに限定
-- 管理画面は `service_role` を使うサーバー側 API 経由で操作
+- `/` トップページ
+- `/guides` 問題解決ガイド一覧
+- `/guides/[slug]` 問題解決記事詳細
+- `/jobs` 職種別ハブ
+- `/jobs/[slug]` 職種別詳細
+- `/areas` 地域別ハブ
+- `/areas/[slug]` 地域別詳細
+- `/apps` 単発・求人サービス比較ハブ
+- `/apps/[slug]` 単発・求人サービス詳細
+- `/list` 口コミ一覧
+- `/places/[id]` 勤務先詳細
+- `/submit` 体験談投稿
+- `/guidelines` 投稿ガイドライン
+- `/about` サイトについて
+- `/editorial-policy` 編集方針
+- `/terms` 利用規約・免責事項
+- `/privacy` プライバシーポリシー
+- `/report` 通報フォーム
+- `/takedown` 削除申請フォーム
+- `/official-response` 当事者コメント送信フォーム
 
-### 管理フロー
+### 管理者向けページ
 
-- 新規勤務先・体験談・当事者コメントは `pending`
-- 管理者は `approved` / `rejected` / `needs_revision` / `removed` を操作
-- 通報と削除申請は `received` / `investigating` / `resolved`
-- 管理操作は `audit_logs` に記録
-- 削除申請・通報・当事者コメントは Resend で管理者へ通知可能
+- `/admin/login`
+- `/admin/places`
+- `/admin/reviews`
+- `/admin/reports`
+- `/admin/takedowns`
+- `/admin/official-responses`
 
-## 実装タスク
+### 収益化とSEOの土台
 
-1. 地図・一覧・詳細ページを実装
-2. 口コミ投稿と勤務先新規登録のフローを実装
-3. 通報、削除申請、当事者コメントの受付を実装
-4. 管理画面と承認フローを実装
-5. RLS、Rate Limit、サニタイズ、監査ログを実装
-6. 利用規約、投稿ガイドライン、免責を整備
-7. Vercel / Supabase / Mapbox / Resend 向けの環境変数と README を整備
+- `guides / jobs / areas / apps` の内部リンク構造
+- 提携リンク用の環境変数切り替え
+- PR表記コンポーネント
+- GA4 / GTM 用の計測受け皿
+- 外部CTAクリック時の `affiliate_click` イベント送信
+- `Article` / `Breadcrumb` の構造化データ
+- `sitemap.xml`
+- フォーム系ページへの `noindex,follow`
+
+## 技術スタック
+
+| 項目 | 内容 |
+|---|---|
+| Framework | Next.js 16 App Router |
+| Language | TypeScript |
+| UI | React 19 |
+| Styling | Tailwind CSS 4 |
+| Database / Auth | Supabase |
+| Map | Mapbox / react-map-gl / Leaflet |
+| Mail | Resend |
+| Hosting | Vercel 想定 |
+| Analytics | GA4 直接埋め込み or GTM 経由 |
 
 ## リポジトリ構成
 
 ```text
 app/
   admin/                  管理画面
-  api/                    投稿・通報・削除申請・管理 API
+  api/                    投稿・通報・削除申請・管理API
+  apps/                   単発・求人サービス比較
+  areas/                  地域別ハブ
+  guides/                 SEO記事ハブ
+  jobs/                   職種別ハブ
+  list/                   口コミ一覧
+  official-response/      当事者コメント
   places/[id]/            勤務先詳細
-  submit/                 投稿フォーム
+  privacy/                プライバシーポリシー
   report/                 通報フォーム
+  submit/                 投稿フォーム
   takedown/               削除申請フォーム
-  official-response/      当事者コメント送信
 components/
-  admin/                  管理 UI 部品
-  Map.tsx                 地図表示
-  ReviewCard.tsx          口コミカード
+  Analytics.tsx           GA4 / GTM の読み込み
+  ActionSpotlight.tsx     CTAカード
+  GuideCta.tsx            ガイド用CTA
+  PromotionNotice.tsx     PR表記
+  TrackedCtaLink.tsx      外部CTA計測
 lib/
-  adminAuth.ts            管理者認証
-  adminNotes.ts           管理メモ取得
-  notifications.ts        Resend 通知
-  rateLimit.ts            インメモリ Rate Limit
-  sanitize.ts             テキストサニタイズ
-  siteConfig.ts           エリア制限設定
+  guides.ts               ガイドデータ
+  hubs.ts                 jobs / areas / apps データ
+  partnerLinks.ts         提携リンクの切り替え
+  siteConfig.ts           投稿対象エリア設定
   supabase/               Supabase クライアント
-supabase/migrations/      スキーマ定義・追加マイグレーション
+supabase/migrations/      スキーマ
 ```
 
 ## 環境変数
 
-`.env.example` を `.env.local` にコピーして設定します。
-
-### 必須
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXT_PUBLIC_MAPBOX_TOKEN`
-- `NEXT_PUBLIC_SITE_URL` (`https://baito-review.com`)
-
-### 任意だが本番推奨
-
-- `NEXT_PUBLIC_ALLOWED_MIN_LAT`
-- `NEXT_PUBLIC_ALLOWED_MAX_LAT`
-- `NEXT_PUBLIC_ALLOWED_MIN_LNG`
-- `NEXT_PUBLIC_ALLOWED_MAX_LNG`
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-- `ADMIN_NOTIFICATION_EMAIL`
-
-## ローカル起動手順
-
-### 1. 依存パッケージ
-
-```bash
-npm install
-```
-
-### 2. 環境変数
+`.env.example` を `.env.local` にコピーして使います。
 
 ```bash
 cp .env.example .env.local
 ```
 
-### 3. Supabase セットアップ
+### 必須
+
+| 変数名 | 用途 |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 公開キー |
+| `SUPABASE_SERVICE_ROLE_KEY` | 管理用キー。公開しない |
+| `NEXT_PUBLIC_SITE_URL` | 本番URL |
+
+### 任意だが推奨
+
+| 変数名 | 用途 |
+|---|---|
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | 地図・Geocoding |
+| `RESEND_API_KEY` | 管理通知メール |
+| `RESEND_FROM_EMAIL` | 送信元メール |
+| `ADMIN_NOTIFICATION_EMAIL` | 管理通知先 |
+
+### 投稿対象エリア
+
+未設定時は、日本の主要地域と離島を含む内蔵領域判定を使います。
+4項目をすべて設定した場合だけ、独自の矩形範囲へ上書きします。
+
+| 変数名 | 既定値 |
+|---|---|
+| `NEXT_PUBLIC_ALLOWED_MIN_LAT` | 未設定 |
+| `NEXT_PUBLIC_ALLOWED_MAX_LAT` | 未設定 |
+| `NEXT_PUBLIC_ALLOWED_MIN_LNG` | 未設定 |
+| `NEXT_PUBLIC_ALLOWED_MAX_LNG` | 未設定 |
+
+### 提携リンク
+
+未設定時は内部ページへ遷移します。
+提携URLを入れると、自動で外部アフィリエイトリンクに切り替わります。
+
+| 変数名 | 想定用途 |
+|---|---|
+| `NEXT_PUBLIC_PARTNER_SINGLE_DAY_JOBS_URL` | 単発・スキマバイト案件 |
+| `NEXT_PUBLIC_PARTNER_PART_TIME_JOBS_URL` | 総合バイト求人案件 |
+| `NEXT_PUBLIC_PARTNER_CAREER_URL` | 働き方見直し系の導線 |
+
+### 計測
+
+GTM を使うなら `NEXT_PUBLIC_GTM_ID` を優先します。
+最短で始めるなら `NEXT_PUBLIC_GA_MEASUREMENT_ID` だけで十分です。
+
+| 変数名 | 用途 |
+|---|---|
+| `NEXT_PUBLIC_GTM_ID` | GTM コンテナID |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 Measurement ID (`G-XXXXXXXXXX`) |
+
+## ローカル開発
+
+### 1. 依存関係を入れる
+
+```bash
+npm install
+```
+
+### 2. Supabase をセットアップする
 
 1. [Supabase](https://supabase.com/) でプロジェクトを作成
-2. Authentication > URL Configuration で以下を設定
-   - Site URL: `https://baito-review.com`
-   - Redirect URLs:
-     - `http://localhost:3000/auth/callback`
-     - `https://baito-review.com/auth/callback`
-     - `https://www.baito-review.com/auth/callback`
-3. SQL Editor で `supabase/migrations/001_initial.sql` と `supabase/migrations/002_revision_workflow.sql` を順に実行
-4. Authentication > Users で管理者ユーザーを作成
-5. SQL Editor で管理者を登録
+2. `Authentication > URL Configuration` を開く
+3. 以下を設定する
+
+| 項目 | 値 |
+|---|---|
+| Site URL | `https://baito-review.com` |
+| Redirect URL | `http://localhost:3000/auth/callback` |
+| Redirect URL | `https://baito-review.com/auth/callback` |
+| Redirect URL | `https://www.baito-review.com/auth/callback` |
+
+4. `supabase/migrations` の SQL を順に実行する
+5. `Authentication > Users` で管理者ユーザーを作る
+6. SQL Editor で `admins` テーブルに登録する
 
 ```sql
 insert into admins (user_id, role) values ('<user_id>', 'admin');
 ```
 
-### 4. 開発サーバー
+### 3. 開発サーバーを立ち上げる
 
 ```bash
 npm run dev
@@ -139,57 +202,286 @@ npm run dev
 
 `http://localhost:3000` で確認できます。
 
-## セキュリティ・運用
-
-| 項目 | 実装 |
-|------|------|
-| 投稿表現の中立化 | 投稿フォーム・ガイドラインで主観表現を明示 |
-| 事前審査 | すべての口コミ・勤務先・当事者コメントを承認制 |
-| 削除対応 | 削除申請フォームと管理ステータス |
-| 当事者対応 | 当事者コメント送信 + 管理者掲載 |
-| Rate Limit | IP ベース |
-| XSS 対策 | HTML タグ除去 + React エスケープ |
-| ログ保持 | IP / UA / 作成時刻 / 監査ログを内部保存 |
-| エリア制限 | 環境変数で投稿可能範囲を制御 |
-
-## デプロイ
-
-Vercel + 独自ドメイン `baito-review.com` を前提にしています。
+### 4. 本番ビルド確認
 
 ```bash
-npx vercel link
-npx vercel --prod
+npm run build
 ```
 
-本番反映までの流れは以下です。
+## Vercel デプロイ手順
 
-1. Vercel でこの GitHub リポジトリを Project として接続する
-2. Vercel の Production Environment Variables に `.env.local` と同じ値を登録する
-   - `NEXT_PUBLIC_SITE_URL=https://baito-review.com`
-   - `NEXT_PUBLIC_MAPBOX_TOKEN`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - 必要なら `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFICATION_EMAIL`
-3. Vercel Project Settings > Domains に以下を追加する
-   - `baito-review.com` を Primary Domain にする
-   - `www.baito-review.com` も追加する
-4. ドメイン管理会社の DNS を Vercel が案内する値へ切り替える
-   - 現在別サーバーを向いている場合は、その A/CNAME を Vercel の指定値へ置き換える
-5. `npx vercel --prod` で本番デプロイする
+### GitHub 連携
 
-本番環境では以下を必ず確認してください。
+1. GitHub にこのリポジトリを push
+2. [Vercel Dashboard](https://vercel.com/dashboard) を開く
+3. `Add New...` → `Project`
+4. このリポジトリを選ぶ
+5. Framework は `Next.js`
+6. `Deploy`
 
-- Supabase の Site URL / Redirect URLs が `baito-review.com` に揃っている
-- Mapbox の許可 URL を `https://baito-review.com/*`, `https://www.baito-review.com/*`, `http://localhost:3000/*` に制限する
-- Resend の送信ドメイン認証を完了し、`RESEND_FROM_EMAIL` を `no-reply@baito-review.com` のような独自ドメインにする
-- 管理者アカウントを 2 名以上で運用する
-- 削除申請と通報の通知先メールが有効
+### ドメイン設定
 
-## 公開前チェック
+1. Vercel プロジェクトを開く
+2. `Settings`
+3. `Domains`
+4. `baito-review.com` を追加
+5. `www.baito-review.com` も追加
+6. `baito-review.com` を Primary Domain にする
 
-- 利用規約・投稿ガイドライン・免責の文面を運用方針に合わせて見直す
-- 削除申請の一次対応 SLA を決める
-- 管理画面を毎日確認する運用を決める
-- 開示請求や問い合わせの受け口メールを用意する
-- 必要に応じて専門家レビューを受ける
+### 環境変数の入れ方
+
+1. プロジェクトを開く
+2. `Settings`
+3. `Environment Variables`
+4. `Add New`
+5. Name / Value / Environment を入力
+6. `Save`
+7. `Deployments` から `Redeploy`
+
+Vercel公式でも、環境変数変更後は再デプロイが必要です。
+
+### 最低限入れる本番環境変数
+
+| 変数名 | 必須 |
+|---|---:|
+| `NEXT_PUBLIC_SITE_URL=https://baito-review.com` | 必須 |
+| `NEXT_PUBLIC_SUPABASE_URL` | 必須 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 必須 |
+| `SUPABASE_SERVICE_ROLE_KEY` | 必須 |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | 推奨 |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | 推奨 |
+| `RESEND_API_KEY` | 推奨 |
+
+## GA4 をつなぐ手順
+
+最短ルートは **GA4直挿し** です。
+まずは GTM ではなく `NEXT_PUBLIC_GA_MEASUREMENT_ID` を使う方が簡単です。
+
+### 手順
+
+1. [Google Analytics](https://analytics.google.com/) を開く
+2. `管理`
+3. `プロパティを作成`
+4. Web データストリームを追加
+5. `https://baito-review.com` を登録
+6. `G-XXXXXXXXXX` の Measurement ID を取得
+7. Vercel の `Settings > Environment Variables` で以下を追加
+
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `G-XXXXXXXXXX` |
+
+8. `Deployments` から `Redeploy`
+9. GA4 の `リアルタイム` で自分のアクセスが見えるか確認
+
+### クリック計測
+
+外部CTAは `affiliate_click` イベントを送る実装です。
+見たい項目は次の 3 つです。
+
+| パラメータ | 意味 |
+|---|---|
+| `link_url` | クリックしたリンク |
+| `link_text` | ボタン文言 |
+| `placement` | どのページ・位置のCTAか |
+
+## Search Console の設定手順
+
+### 1. プロパティ追加
+
+1. [Google Search Console](https://search.google.com/search-console/about) を開く
+2. `プロパティを追加`
+3. 推奨は `ドメイン` プロパティ
+4. `baito-review.com` を入力
+5. DNS の TXT レコードで確認
+
+### 2. サイトマップ送信
+
+1. 左メニューの `サイトマップ`
+2. `sitemap.xml` を入力
+3. `送信`
+
+### 3. 送信後に見る場所
+
+| 画面 | 何を見るか |
+|---|---|
+| `サイトマップ` | 成功したか、検出URL数はあるか |
+| `URL検査` | 主要ページが読めるか |
+| `検索結果` | 表示回数が増えているか |
+| `ページ` / `インデックス` | 除外や未登録が多すぎないか |
+| `手動による対策` | 警告が出ていないか |
+| `セキュリティの問題` | 問題なしになっているか |
+
+### 最初に検査するURL
+
+- `https://baito-review.com/`
+- `https://baito-review.com/guides`
+- `https://baito-review.com/guides/baito-yametai-daigakusei`
+- `https://baito-review.com/guides/black-baito-miwakekata`
+- `https://baito-review.com/guides/tanpatsu-baito-app-hikaku`
+
+## A8.net で案件を選ぶ基準
+
+このサイトは、**高単価より読者との相性** を優先します。
+
+### 最初に探すジャンル
+
+| 優先 | ジャンル |
+|---|---|
+| 1 | 単発・スキマバイト |
+| 2 | 総合アルバイト求人 |
+| 3 | 日払い・短期 |
+
+### A8 での画面の流れ
+
+1. [A8.net](https://www.a8.net/) にログイン
+2. `プログラム検索`
+3. `単発バイト` `スキマバイト` `求人` で検索
+4. 案件詳細を開く
+5. `提携申請`
+
+### 選定基準
+
+| 項目 | 見るポイント |
+|---|---|
+| 成果条件 | 登録 or 応募など軽めか |
+| 否認条件 | 厳しすぎないか |
+| 読者との相性 | 大学生・単発需要に合うか |
+| 審査難度 | 即時提携 or 通りやすいか |
+| 広告素材 | テキストリンクが使えるか |
+
+### 最初に避ける案件
+
+- 成果条件が重すぎる
+- 読者とズレている
+- 否認条件が厳しすぎる
+- LP が弱い
+- 記事に自然に置けない
+
+### 提携URLを入れる場所
+
+承認後、Vercel の環境変数へ入れます。
+
+| 変数名 | 入れるURL |
+|---|---|
+| `NEXT_PUBLIC_PARTNER_SINGLE_DAY_JOBS_URL` | 単発・スキマ系 |
+| `NEXT_PUBLIC_PARTNER_PART_TIME_JOBS_URL` | 総合求人系 |
+| `NEXT_PUBLIC_PARTNER_CAREER_URL` | 働き方見直し系 |
+
+## SEO と noindex の方針
+
+### 現在インデックスさせるページ
+
+- トップ
+- guides 一覧・詳細
+- jobs 一覧・詳細
+- areas 一覧・詳細
+- apps 一覧・詳細
+- list
+- places 詳細
+- about
+- editorial-policy
+- guidelines
+- terms
+- privacy
+
+### noindex にしているページ
+
+- `/submit`
+- `/report`
+- `/takedown`
+- `/official-response`
+
+理由は、フォームUI中心で検索流入価値が低く、インデックス品質を落としやすいためです。
+
+## 記事と収益導線の考え方
+
+### 集客記事
+
+- ブラックバイトの見分け方
+- バイトを辞めたい大学生向け
+- 単発バイトアプリ比較
+
+### 送客先
+
+```text
+検索
+  ↓
+guides
+  ↓
+jobs / apps / areas
+  ↓
+外部提携リンク
+```
+
+### ページ内の役割
+
+| ページ | 役割 |
+|---|---|
+| `guides` | 集客と問題解決 |
+| `jobs` | 職種単位の比較 |
+| `areas` | 地域単位の比較 |
+| `apps` | CVに近い比較ページ |
+| `list` / `places` | 信頼補強と回遊 |
+
+## 運用フロー
+
+### 毎週やること
+
+- Search Console の `検索結果` を確認
+- 表示回数が伸びた記事を見る
+- CTA のクリックが出ているか確認
+- 承認待ちの投稿・通報・削除申請を処理
+
+### 毎月やること
+
+- 上位表示候補の記事をリライト
+- 空ページや薄いページを見直す
+- 提携案件の差し替え候補を確認
+- PR表記や法務ページの記載を見直す
+
+## 安全運用の原則
+
+| 項目 | 方針 |
+|---|---|
+| 投稿内容 | 主観レビューとして扱う |
+| 公開方式 | 管理者承認後に公開 |
+| 表現 | 断定・個人特定を避ける |
+| 問題発生時 | 通報・削除申請・当事者コメント導線を使う |
+| 証跡 | IP / UA / タイムスタンプ等を内部保存 |
+
+この README は一般的な運用方針であり、法的助言ではありません。
+公開運用前には、必要に応じて専門家確認を入れてください。
+
+## 公開前チェックリスト
+
+- [ ] Supabase の URL / Redirect が本番ドメインに合っている
+- [ ] Vercel の環境変数が入っている
+- [ ] `NEXT_PUBLIC_GA_MEASUREMENT_ID` または `NEXT_PUBLIC_GTM_ID` が入っている
+- [ ] `sitemap.xml` を Search Console に送信した
+- [ ] 主要3記事を URL 検査した
+- [ ] A8 で 3 件以上提携申請した
+- [ ] PR表記が外部提携リンクページに出る
+- [ ] フォーム系ページが `noindex` になっている
+- [ ] 削除申請と当事者コメント導線が動く
+- [ ] `npm run build` が通る
+
+## よく使うコマンド
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run start
+```
+
+## 参考リンク
+
+- [Next.js Docs](https://nextjs.org/docs)
+- [Vercel Environment Variables](https://vercel.com/docs/environment-variables)
+- [Google Analytics Help](https://support.google.com/analytics/)
+- [Google Search Console Help](https://support.google.com/webmasters/)
+- [Google Search Central](https://developers.google.com/search/docs)
+- [A8.net ヘルプ](https://support.a8.net/a8/as/)
+- [Supabase Docs](https://supabase.com/docs)
+- [Resend Docs](https://resend.com/docs)

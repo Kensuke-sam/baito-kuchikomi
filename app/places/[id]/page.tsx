@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { HubCard } from "@/components/HubCard";
 import { ReviewCard } from "@/components/ReviewCard";
+import { getFeaturedGuides } from "@/lib/guides";
+import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import type { Place, Review, OfficialResponse } from "@/lib/types";
 
 interface Props {
@@ -30,6 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PlaceDetailPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
+  const featuredGuides = getFeaturedGuides();
+  const featuredJobs = getJobHubs().slice(0, 3);
+  const featuredAreas = getAreaHubs().slice(0, 3);
+  const featuredApps = getAppHubs().slice(0, 3);
 
   const [
     { data: place },
@@ -105,6 +112,83 @@ export default async function PlaceDetailPage({ params }: Props) {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mt-8 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Related Guides</p>
+        <h2 className="mt-3 text-lg font-bold text-gray-900">次の候補を探す前に読みたい記事</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {featuredGuides.map((guide) => (
+            <Link
+              key={guide.slug}
+              href={`/guides/${guide.slug}`}
+              className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 hover:border-blue-300"
+            >
+              <p className="text-xs font-semibold text-blue-600">{guide.category}</p>
+              <p className="mt-2 text-sm font-semibold text-gray-900">{guide.title}</p>
+              <p className="mt-2 text-xs leading-6 text-gray-500">{guide.description}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8 grid gap-4 xl:grid-cols-3">
+        <section className="section-frame p-6 sm:p-7">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow">Job Type Hubs</span>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                職種から比較
+              </h2>
+            </div>
+            <Link href="/jobs" className="secondary-button text-sm">
+              すべて
+            </Link>
+          </div>
+          <div className="mt-5 space-y-4">
+            {featuredJobs.map((job) => (
+              <HubCard key={job.slug} hub={job} />
+            ))}
+          </div>
+        </section>
+
+        <section className="section-frame p-6 sm:p-7">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow">Area Hubs</span>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                地域から比較
+              </h2>
+            </div>
+            <Link href="/areas" className="secondary-button text-sm">
+              すべて
+            </Link>
+          </div>
+          <div className="mt-5 space-y-4">
+            {featuredAreas.map((area) => (
+              <HubCard key={area.slug} hub={area} />
+            ))}
+          </div>
+        </section>
+
+        <section className="section-frame p-6 sm:p-7">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow">Apps & Services</span>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                サービス比較
+              </h2>
+            </div>
+            <Link href="/apps" className="secondary-button text-sm">
+              すべて
+            </Link>
+          </div>
+          <div className="mt-5 space-y-4">
+            {featuredApps.map((app) => (
+              <HubCard key={app.slug} hub={app} />
+            ))}
+          </div>
+        </section>
       </section>
 
       {/* 当事者コメント投稿誘導 */}

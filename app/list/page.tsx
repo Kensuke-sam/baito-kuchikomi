@@ -1,10 +1,27 @@
 import Link from "next/link";
+import { HubCard } from "@/components/HubCard";
 import { createClient } from "@/lib/supabase/server";
+import { GuideCard } from "@/components/GuideCard";
+import { GuideCta } from "@/components/GuideCta";
 import { ReviewCard } from "@/components/ReviewCard";
+import { getFeaturedGuides } from "@/lib/guides";
+import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import type { Place, Review } from "@/lib/types";
 import { REVIEW_TAGS } from "@/lib/types";
 
 const PER_PAGE = 20;
+
+function normalizeSearchText(value: string): string {
+  return value.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function escapeLikePattern(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_")
+    .replace(/[,().]/g, "");
+}
 
 interface Props {
   searchParams: Promise<{ q?: string; tag?: string; page?: string }>;
@@ -28,6 +45,14 @@ export default async function ListPage({ searchParams }: Props) {
 
   type PlaceSummary = Pick<Place, "id" | "name" | "address">;
   const placeMap = new Map<string, PlaceSummary>((places ?? []).map((p: PlaceSummary) => [p.id, p]));
+  const normalizedQuery = normalizeSearchText(query);
+  const matchingPlaceIds = normalizedQuery
+    ? (places ?? [])
+        .filter((place: PlaceSummary) =>
+          normalizeSearchText(`${place.name} ${place.address}`).includes(normalizedQuery)
+        )
+        .map((place: PlaceSummary) => place.id)
+    : [];
 
   // 体験談クエリ構築
   let reviewQuery = supabase
@@ -37,13 +62,14 @@ export default async function ListPage({ searchParams }: Props) {
     .order("created_at", { ascending: false });
 
   if (query) {
-    // PostgREST フィルターインジェクション対策: 特殊文字をエスケープ
-    const escaped = query
-      .replace(/\\/g, "\\\\")
-      .replace(/%/g, "\\%")
-      .replace(/_/g, "\\_")
-      .replace(/[,().]/g, "");
-    reviewQuery = reviewQuery.or(`title.ilike.%${escaped}%,body.ilike.%${escaped}%`);
+    const escaped = escapeLikePattern(query);
+    const filters = [`title.ilike.%${escaped}%`, `body.ilike.%${escaped}%`];
+
+    if (matchingPlaceIds.length > 0) {
+      filters.push(`place_id.in.(${matchingPlaceIds.map((id) => `"${id}"`).join(",")})`);
+    }
+
+    reviewQuery = reviewQuery.or(filters.join(","));
   }
   if (tagFilter) {
     reviewQuery = reviewQuery.contains("tags", [tagFilter]);
@@ -56,6 +82,10 @@ export default async function ListPage({ searchParams }: Props) {
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const displayStart = totalCount === 0 ? 0 : offset + 1;
   const displayEnd = totalCount === 0 ? 0 : Math.min(offset + PER_PAGE, totalCount);
+  const featuredGuides = getFeaturedGuides();
+  const featuredJobs = getJobHubs().slice(0, 3);
+  const featuredAreas = getAreaHubs().slice(0, 3);
+  const featuredApps = getAppHubs().slice(0, 3);
 
   // 検索パラメータを維持するヘルパー
   function buildHref(overrides: Record<string, string>) {
@@ -92,13 +122,32 @@ export default async function ListPage({ searchParams }: Props) {
           投稿内容はユーザーの主観的な体験談であり、事実を保証するものではありません。
         </div>
 
+        <div className="mt-6">
+          <GuideCta
+            eyebrow="Search With Context"
+            title="口コミの前に、危ない求人の見分け方も持っておく"
+            description="一覧は便利ですが、読み方の基準がないと判断しにくくなります。先にガイドを1本読むと、口コミから拾うポイントがはっきりします。"
+            trackingContext="list:search-context"
+            primary={{
+              label: "ブラックバイトの見分け方を読む",
+              href: "/guides/black-baito-miwakekata",
+              description: "危ないサインを先に押さえてから一覧へ戻る",
+            }}
+            secondary={{
+              label: "単発バイト比較を読む",
+              href: "/guides/tanpatsu-baito-app-hikaku",
+              description: "今の職場を離れたいときの逃げ先を先に持つ",
+            }}
+          />
+        </div>
+
         <form action="/list" method="GET" className="glass-panel mt-6 rounded-[28px] p-5">
           <div className="flex flex-col gap-3 sm:flex-row">
             <input
               type="text"
               name="q"
               defaultValue={query}
-              placeholder="勤務先名・体験内容・気になる言葉で検索"
+              placeholder="勤務先名・住所・体験内容・気になる言葉で検索"
               className="field-input flex-1 text-sm text-[var(--page-ink)] placeholder:text-gray-400"
             />
             <button type="submit" className="primary-button text-sm">
@@ -133,7 +182,15 @@ export default async function ListPage({ searchParams }: Props) {
 
         {(reviews ?? []).length === 0 ? (
           <div className="glass-panel mt-6 rounded-[28px] px-6 py-14 text-center text-[var(--page-muted)]">
-            {query || tagFilter ? "条件に一致する投稿が見つかりません。" : "まだ投稿がありません。"}
+            <p>{query || tagFilter ? "条件に一致する投稿が見つかりません。" : "まだ投稿がありません。"}</p>
+            <p className="mt-3 text-sm leading-7">
+              先に悩み別ガイドを見ると、次にどんな勤務先を探すべきか整理しやすくなります。
+            </p>
+            <div className="mt-6 grid gap-4 text-left lg:grid-cols-3">
+              {featuredGuides.map((guide) => (
+                <GuideCard key={guide.slug} guide={guide} />
+              ))}
+            </div>
           </div>
         ) : (
           <div className="mt-6 space-y-4">
@@ -155,6 +212,86 @@ export default async function ListPage({ searchParams }: Props) {
             })}
           </div>
         )}
+
+        {(reviews ?? []).length > 0 && (
+          <section className="mt-8">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="eyebrow">Related Guides</span>
+                <h2 className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+                  読みながら次の動きも決める
+                </h2>
+              </div>
+              <Link href="/guides" className="secondary-button text-sm">
+                ガイド一覧へ
+              </Link>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {featuredGuides.map((guide) => (
+                <GuideCard key={guide.slug} guide={guide} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="mt-8 grid gap-4 xl:grid-cols-3">
+          <section className="section-frame p-6 sm:p-7">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <span className="eyebrow">Job Type Hubs</span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                  職種から絞る
+                </h2>
+              </div>
+              <Link href="/jobs" className="secondary-button text-sm">
+                すべて
+              </Link>
+            </div>
+            <div className="mt-5 space-y-4">
+              {featuredJobs.map((job) => (
+                <HubCard key={job.slug} hub={job} />
+              ))}
+            </div>
+          </section>
+
+          <section className="section-frame p-6 sm:p-7">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <span className="eyebrow">Area Hubs</span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                  地域から絞る
+                </h2>
+              </div>
+              <Link href="/areas" className="secondary-button text-sm">
+                すべて
+              </Link>
+            </div>
+            <div className="mt-5 space-y-4">
+              {featuredAreas.map((area) => (
+                <HubCard key={area.slug} hub={area} />
+              ))}
+            </div>
+          </section>
+
+          <section className="section-frame p-6 sm:p-7">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <span className="eyebrow">Apps & Services</span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                  サービス比較
+                </h2>
+              </div>
+              <Link href="/apps" className="secondary-button text-sm">
+                すべて
+              </Link>
+            </div>
+            <div className="mt-5 space-y-4">
+              {featuredApps.map((app) => (
+                <HubCard key={app.slug} hub={app} />
+              ))}
+            </div>
+          </section>
+        </section>
 
         {totalPages > 1 && (
           <nav className="mt-8 flex items-center justify-center gap-2">

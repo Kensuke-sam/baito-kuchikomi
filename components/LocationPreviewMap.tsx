@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LayerGroup, LeafletMouseEvent, Map as LeafletMap } from "leaflet";
-import { SUBMISSION_AREA_BOUNDS } from "@/lib/siteConfig";
+import {
+  SUBMISSION_AREA_PREVIEW_BOUNDS,
+  SUBMISSION_AREA_REGIONS,
+} from "@/lib/siteConfig";
 import { escapeHtml } from "@/lib/sanitize";
 
 interface Props {
@@ -30,6 +33,7 @@ export default function LocationPreviewMap({
   const mapRef = useRef<LeafletMap | null>(null);
   const layerRef = useRef<LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
+  const lastViewportKeyRef = useRef<string | null>(null);
   const [mapError, setMapError] = useState("");
   const [mapReady, setMapReady] = useState(false);
 
@@ -111,10 +115,10 @@ export default function LocationPreviewMap({
 
     layer.clearLayers();
 
-    if (SUBMISSION_AREA_BOUNDS) {
+    for (const region of SUBMISSION_AREA_REGIONS) {
       const bounds: [[number, number], [number, number]] = [
-        [SUBMISSION_AREA_BOUNDS.minLat, SUBMISSION_AREA_BOUNDS.minLng],
-        [SUBMISSION_AREA_BOUNDS.maxLat, SUBMISSION_AREA_BOUNDS.maxLng],
+        [region.minLat, region.minLng],
+        [region.maxLat, region.maxLng],
       ];
 
       L.rectangle(bounds, {
@@ -145,12 +149,12 @@ export default function LocationPreviewMap({
           <p class="text-sm font-bold">${popupTitle}</p>
           <p class="mt-1 text-xs text-slate-500">${popupAddress}</p>
           <p class="mt-2 text-[11px] ${isBlocked ? "text-red-600" : "text-slate-500"}">
-            ${isBlocked ? "対象エリア外です" : "この位置で登録されます"}
+            ${isBlocked ? "受付対象外です" : "この位置で登録されます"}
           </p>
         </div>`
       );
 
-      marker.addTo(layer).openPopup();
+      marker.addTo(layer);
 
       L.circle([lat, lng], {
         color: isBlocked ? "#dc2626" : "#2563eb",
@@ -160,15 +164,21 @@ export default function LocationPreviewMap({
         weight: 1,
       }).addTo(layer);
 
-      map.flyTo([lat, lng], 17, { duration: 0.75 });
-    } else if (SUBMISSION_AREA_BOUNDS) {
-      const bounds = L.latLngBounds(
-        [SUBMISSION_AREA_BOUNDS.minLat, SUBMISSION_AREA_BOUNDS.minLng],
-        [SUBMISSION_AREA_BOUNDS.maxLat, SUBMISSION_AREA_BOUNDS.maxLng]
-      );
-      map.fitBounds(bounds, { padding: [24, 24], maxZoom: 13 });
+      const nextViewportKey = `${lat}:${lng}`;
+      if (lastViewportKeyRef.current !== nextViewportKey) {
+        marker.openPopup();
+        map.flyTo([lat, lng], 17, { duration: 0.75 });
+        lastViewportKeyRef.current = nextViewportKey;
+      }
     } else {
-      map.setView(DEFAULT_CENTER, 13);
+      const bounds = L.latLngBounds(
+        [SUBMISSION_AREA_PREVIEW_BOUNDS.minLat, SUBMISSION_AREA_PREVIEW_BOUNDS.minLng],
+        [SUBMISSION_AREA_PREVIEW_BOUNDS.maxLat, SUBMISSION_AREA_PREVIEW_BOUNDS.maxLng]
+      );
+      if (lastViewportKeyRef.current !== "__regions__") {
+        map.fitBounds(bounds, { padding: [24, 24], maxZoom: 13 });
+        lastViewportKeyRef.current = "__regions__";
+      }
     }
 
     requestAnimationFrame(() => map.invalidateSize());

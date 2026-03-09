@@ -43,6 +43,13 @@ export async function POST(req: Request) {
   const detail = sanitizeText(d.detail);
   const evidenceUrl = d.evidence_url ? sanitizeUrl(d.evidence_url) : null;
 
+  if (!targetUrl || !contactName || !contactEmail || detail.length < 10) {
+    return NextResponse.json(
+      { error: "削除申請の入力内容を確認してください。" },
+      { status: 422 }
+    );
+  }
+
   const { error } = await supabase.from("takedown_requests").insert({
     target_url:    targetUrl,
     contact_name:  contactName,

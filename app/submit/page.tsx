@@ -6,21 +6,20 @@ import Link from "next/link";
 import { REVIEW_TAGS } from "@/lib/types";
 import { readErrorMessage } from "@/lib/http";
 import { isWithinSubmissionArea } from "@/lib/siteConfig";
+import LocationPreviewMap from "@/components/LocationPreviewMap";
 
-const PROHIBITED_PATTERNS = [
-  /詐欺/,
-  /犯罪/,
-  /逮捕/,
-  /違法/,
-];
+const PROHIBITED_PATTERNS = [/詐欺/, /犯罪/, /逮捕/, /違法/];
+
+type GeocodeResult =
+  | { ok: true; lat: number; lng: number; provider: "mapbox" | "nominatim" }
+  | { ok: false; error: string };
+
+const inputClass = "field-input text-sm text-[var(--page-ink)] placeholder:text-gray-400";
+const textareaClass = "field-textarea text-sm leading-7 text-[var(--page-ink)] placeholder:text-gray-400";
 
 function hasProhibitedContent(text: string): boolean {
   return PROHIBITED_PATTERNS.some((re) => re.test(text));
 }
-
-type GeocodeResult =
-  | { ok: true; lat: number; lng: number }
-  | { ok: false; error: string };
 
 function SubmitPageInner() {
   const searchParams = useSearchParams();
@@ -32,7 +31,6 @@ function SubmitPageInner() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // 勤務先フォーム
   const [placeName, setPlaceName] = useState("");
   const [placeAddress, setPlaceAddress] = useState("");
   const [placeStation, setPlaceStation] = useState("");
@@ -40,66 +38,58 @@ function SubmitPageInner() {
   const [geocoding, setGeocoding] = useState(false);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
+  const [resolvedAddress, setResolvedAddress] = useState("");
+  const [locationSource, setLocationSource] = useState<"geocode" | "manual" | null>(null);
+  const [locationProvider, setLocationProvider] = useState<"mapbox" | "nominatim" | null>(null);
 
-  // 体験談フォーム
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [periodFrom, setPeriodFrom] = useState("");
   const [periodTo, setPeriodTo] = useState("");
 
-  // 禁止チェック
   const [prohibitedWarning, setProhibitedWarning] = useState(false);
   useEffect(() => {
     setProhibitedWarning(hasProhibitedContent(body) || hasProhibitedContent(title));
   }, [body, title]);
 
+  const trimmedAddress = placeAddress.trim();
+  const hasResolvedLocation = lat !== null && lng !== null && trimmedAddress.length > 0 && resolvedAddress === trimmedAddress;
+  const isResolvedInArea = hasResolvedLocation ? isWithinSubmissionArea(lat, lng) : null;
+
+  function clearResolvedLocation() {
+    setLat(null);
+    setLng(null);
+    setResolvedAddress("");
+    setLocationSource(null);
+    setLocationProvider(null);
+  }
+
   async function geocode(address: string): Promise<GeocodeResult> {
     setGeocoding(true);
+
     try {
-      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-      if (!token) {
+      const response = await fetch("/api/geocode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+
+      if (!response.ok) {
         return {
           ok: false,
-          error: "地図設定が未完了のため、住所確認ができません。",
+          error: await readErrorMessage(response, "住所確認に失敗しました。しばらくしてから再試行してください。"),
         };
       }
 
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address + " 日本")}.json?access_token=${token}&language=ja&limit=1`
-      );
-
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          return {
-            ok: false,
-            error: "地図設定に不備があるため、住所確認ができません。",
-          };
-        }
-        if (res.status === 429) {
-          return {
-            ok: false,
-            error: "住所確認が混み合っています。少し待ってから再試行してください。",
-          };
-        }
-        return {
-          ok: false,
-          error: "住所確認に失敗しました。しばらくしてから再試行してください。",
-        };
-      }
-
-      const data: { features?: Array<{ center?: [number, number] }> } = await res.json();
-      const center = data.features?.[0]?.center;
-      if (Array.isArray(center) && center.length === 2) {
-        const [lngVal, latVal] = center;
-        setLat(latVal);
-        setLng(lngVal);
-        return { ok: true, lat: latVal, lng: lngVal };
+      const data: { lat?: number; lng?: number; provider?: "mapbox" | "nominatim" } = await response.json();
+      if (typeof data.lat === "number" && typeof data.lng === "number") {
+        return { ok: true, lat: data.lat, lng: data.lng, provider: data.provider ?? "nominatim" };
       }
 
       return {
         ok: false,
-        error: "住所を地図上で特定できませんでした。もう少し詳しく入力してください。",
+        error: "住所確認に失敗しました。しばらくしてから再試行してください。",
       };
     } catch {
       return {
@@ -111,6 +101,63 @@ function SubmitPageInner() {
     }
   }
 
+  async function resolveAddressLocation() {
+    const address = trimmedAddress;
+    if (!address) {
+      setError("住所を入力してください。");
+      return null;
+    }
+
+    if (hasResolvedLocation && lat !== null && lng !== null) {
+      return {
+        ok: true as const,
+        lat,
+        lng,
+        provider: locationProvider ?? "nominatim",
+      };
+    }
+
+    const result = await geocode(address);
+    if (!result.ok) {
+      clearResolvedLocation();
+      setError(result.error);
+      return null;
+    }
+
+    setLat(result.lat);
+    setLng(result.lng);
+    setResolvedAddress(address);
+    setLocationSource("geocode");
+    setLocationProvider(result.provider);
+
+    return result;
+  }
+
+  async function handleAddressPreview() {
+    setError("");
+    const result = await resolveAddressLocation();
+    if (!result) return;
+
+    if (!isWithinSubmissionArea(result.lat, result.lng)) {
+      setError("位置は確認できましたが、日本国内の勤務先のみ受け付けています。");
+    }
+  }
+
+  function handleAddressChange(value: string) {
+    setPlaceAddress(value);
+    if (resolvedAddress && value.trim() !== resolvedAddress) {
+      clearResolvedLocation();
+    }
+  }
+
+  function handleMapLocationPick(nextLat: number, nextLng: number) {
+    setLat(nextLat);
+    setLng(nextLng);
+    setResolvedAddress(trimmedAddress);
+    setLocationSource("manual");
+    setError("");
+  }
+
   async function handlePlaceSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -120,13 +167,13 @@ function SubmitPageInner() {
       return;
     }
 
-    const result = await geocode(placeAddress);
-    if (!result.ok) {
-      setError(result.error);
+    const result = await resolveAddressLocation();
+    if (!result) {
       return;
     }
+
     if (!isWithinSubmissionArea(result.lat, result.lng)) {
-      setError("現在は対象エリア内のみ投稿できます。");
+      setError("現在は日本国内の勤務先のみ投稿できます。");
       return;
     }
 
@@ -157,7 +204,6 @@ function SubmitPageInner() {
     setSubmitting(true);
 
     try {
-      // 勤務先が未選択なら新規作成
       let resolvedPlaceId = placeId;
       if (!resolvedPlaceId) {
         if (lat === null || lng === null) {
@@ -167,11 +213,19 @@ function SubmitPageInner() {
         const placeRes = await fetch("/api/places", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: placeName, address: placeAddress, nearest_station: placeStation, lat, lng }),
+          body: JSON.stringify({
+            name: placeName,
+            address: placeAddress,
+            nearest_station: placeStation,
+            lat,
+            lng,
+          }),
         });
+
         if (!placeRes.ok) {
           throw new Error(await readErrorMessage(placeRes, "勤務先の登録に失敗しました。"));
         }
+
         const placeData: { id: string } = await placeRes.json();
         resolvedPlaceId = placeData.id;
         setPlaceId(placeData.id);
@@ -180,8 +234,16 @@ function SubmitPageInner() {
       const reviewRes = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ place_id: resolvedPlaceId, title, body, tags, period_from: periodFrom, period_to: periodTo }),
+        body: JSON.stringify({
+          place_id: resolvedPlaceId,
+          title,
+          body,
+          tags,
+          period_from: periodFrom,
+          period_to: periodTo,
+        }),
       });
+
       if (!reviewRes.ok) {
         throw new Error(await readErrorMessage(reviewRes, "投稿に失敗しました。"));
       }
@@ -194,204 +256,382 @@ function SubmitPageInner() {
     }
   }
 
+  function toggleTag(tag: string) {
+    setTags((prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]));
+  }
+
   if (success) {
     return (
-      <main className="max-w-xl mx-auto px-4 py-12 text-center">
-        <div className="text-4xl mb-4">✅</div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">投稿を受け付けました</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          管理者が確認後、公開されます。通常1〜3営業日以内に対応します。
-        </p>
-        <Link href="/" className="text-blue-600 hover:underline text-sm">トップへ戻る</Link>
+      <main className="app-shell mx-auto max-w-3xl px-4 py-10 sm:py-14">
+        <section className="section-frame p-8 text-center sm:p-12">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-3xl text-white shadow-[0_18px_40px_rgba(37,99,235,0.24)]">
+            ✓
+          </div>
+          <p className="mt-6">
+            <span className="eyebrow">Submission Complete</span>
+          </p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+            投稿を受け付けました
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--page-muted)]">
+            勤務先と体験談は管理者確認後に公開されます。通常は 1〜3 営業日以内に反映します。
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/" className="primary-button text-sm">
+              トップへ戻る
+            </Link>
+            <Link href="/list" className="secondary-button text-sm">
+              一覧を見る
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-900 mb-2">体験談を投稿する</h1>
-
-      {/* ガイドライン */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-900 space-y-1">
-        <p className="font-semibold">📋 投稿前にご確認ください</p>
-        <p>・ここは体験談（主観）を共有する場所です。断定表現や個人特定は書かないでください。</p>
-        <p>・未払い・違法などの断定は避け、事実として体験したことを時系列で書いてください。</p>
-        <p>・個人名・電話番号・SNSアカウントなど個人を特定できる情報は記載禁止です。</p>
-        <p>・対象外エリアの勤務先は受け付けていません。</p>
-        <Link href="/guidelines" className="underline text-blue-700">詳細ガイドラインを見る →</Link>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* STEP 1: 勤務先 */}
-      {step === "place" && (
-        <form onSubmit={handlePlaceSubmit} className="space-y-4">
-          <h2 className="font-semibold text-gray-800">STEP 1: 勤務先を登録</h2>
+    <main className="app-shell mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className="section-frame flex h-fit flex-col gap-6 p-6 lg:sticky lg:top-24">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">勤務先名 *</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="例：○○チェーン 渋谷店"
-              value={placeName}
-              onChange={(e) => setPlaceName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">住所 * （地図にピンを立てます）</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="例：東京都豊島区池袋2丁目"
-              value={placeAddress}
-              onChange={(e) => setPlaceAddress(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">最寄り駅（任意）</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="例：池袋駅 徒歩3分"
-              value={placeStation}
-              onChange={(e) => setPlaceStation(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={geocoding}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-md text-sm"
-          >
-            {geocoding ? "住所を確認中…" : "次へ（体験談を入力）"}
-          </button>
-        </form>
-      )}
-
-      {/* STEP 2: 体験談 */}
-      {step === "review" && (
-        <form onSubmit={handleReviewSubmit} className="space-y-4">
-          <h2 className="font-semibold text-gray-800">STEP 2: 体験談を入力</h2>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">タイトル *</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="例：シフトの強要が辛かった体験"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={100}
-            />
+            <span className="eyebrow">Moderated Intake</span>
+            <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+              体験談を投稿する
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-[var(--page-muted)]">
+              勤務先の登録と体験談の投稿をまとめて受け付けます。掲載前に管理者が確認し、断定表現や個人情報は公開しません。
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ（複数選択可）</label>
-            <div className="flex flex-wrap gap-2">
-              {REVIEW_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() =>
-                    setTags((prev) =>
-                      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                    )
-                  }
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                    tags.includes(tag)
-                      ? "bg-blue-600 border-blue-600 text-white"
-                      : "bg-white border-gray-300 text-gray-600 hover:border-blue-400"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+          <div className="space-y-3">
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
+                Step 1
+              </p>
+              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">勤務先を特定</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                住所を確認して、日本国内の勤務先かを判定します。
+              </p>
+            </div>
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
+                Step 2
+              </p>
+              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">主観レビューを入力</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                具体的な体験を、断定ではなく主観表現で書いてください。
+              </p>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              体験談 * <span className="text-gray-400 font-normal">（50文字以上・主観として記述）</span>
-            </label>
-            <textarea
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-              rows={6}
-              placeholder="体験したことを具体的に書いてください。断定表現（〜だった/違法/詐欺 など）は避け、「〜と感じた」「〜と思った」などの主観表現で書いてください。"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              maxLength={3000}
-            />
-            {prohibitedWarning && (
-              <p className="text-xs text-red-600 mt-1">⚠️ 断定的な表現や禁止ワードが含まれている可能性があります。</p>
-            )}
-            <p className="text-xs text-gray-400 text-right">{body.length}/3000</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">勤務開始（任意）</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="例：2023年春"
-                value={periodFrom}
-                onChange={(e) => setPeriodFrom(e.target.value)}
-              />
+          <div className="glass-panel rounded-[28px] p-5">
+            <p className="text-sm font-semibold text-[var(--page-ink)]">投稿前チェック</p>
+            <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
+              <p>・未払い・違法などは断定せず、見聞きした事実と感想を分ける</p>
+              <p>・個人名、電話番号、SNS アカウントは書かない</p>
+              <p>・日本国外の勤務先は受け付けない</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">勤務終了（任意）</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="例：2024年夏"
-                value={periodTo}
-                onChange={(e) => setPeriodTo(e.target.value)}
-              />
-            </div>
+            <Link href="/guidelines" className="mt-4 inline-flex text-sm font-semibold text-[var(--accent)] hover:opacity-80">
+              詳細ガイドラインを見る →
+            </Link>
           </div>
+        </aside>
 
-          <label className="flex items-start gap-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              className="mt-0.5 accent-blue-600"
-            />
-            <span>
-              <Link href="/guidelines" className="text-blue-600 hover:underline">投稿ガイドライン</Link>
-              および
-              <Link href="/terms" className="text-blue-600 hover:underline ml-1">利用規約</Link>
-              に同意します
+        <section className="section-frame p-5 sm:p-7">
+          <div className="mb-6 flex flex-wrap gap-2">
+            <span className="soft-pill" data-active={step === "place"}>
+              1. 勤務先登録
             </span>
-          </label>
-          <p className="text-xs text-gray-500">
-            投稿時のIPアドレス・ユーザーエージェントは内部的に保存します。これらは公開されません。
-          </p>
-
-          <div className="flex gap-3">
-            {!preselectedPlaceId && (
-              <button
-                type="button"
-                onClick={() => setStep("place")}
-                className="flex-1 border border-gray-300 text-gray-700 font-medium py-2.5 rounded-md text-sm hover:bg-gray-50"
-              >
-                ← 戻る
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={submitting || !agreed}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-md text-sm"
-            >
-              {submitting ? "送信中…" : "投稿する（管理者確認後に公開）"}
-            </button>
+            <span className="soft-pill" data-active={step === "review"}>
+              2. 体験談入力
+            </span>
+            <span className="soft-pill">
+              承認後に公開
+            </span>
           </div>
-        </form>
-      )}
+
+          <div className="glass-panel rounded-[28px] p-5 text-sm text-[var(--page-muted)]">
+            <p className="font-semibold text-[var(--page-ink)]">掲載ポリシー</p>
+            <p className="mt-2 leading-7">
+              ここはアルバイト体験談を共有する場です。投稿は主観レビューとして扱い、事実の断定や個人特定につながる記述は掲載しません。
+            </p>
+          </div>
+
+          {error && (
+            <div className="mt-5 rounded-[24px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {step === "place" && (
+            <form onSubmit={handlePlaceSubmit} className="mt-6 space-y-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--page-muted)]">
+                  Step 1
+                </p>
+                <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                  勤務先を登録
+                </h2>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                    勤務先名 *
+                  </label>
+                  <input
+                    className={inputClass}
+                    placeholder="例：○○チェーン 渋谷店"
+                    value={placeName}
+                    onChange={(e) => setPlaceName(e.target.value)}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                    住所 *（地図にピンを立てます）
+                  </label>
+                  <input
+                    className={inputClass}
+                    placeholder="例：東京都豊島区池袋2丁目"
+                    value={placeAddress}
+                    onChange={(e) => handleAddressChange(e.target.value)}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                    最寄り駅（任意）
+                  </label>
+                  <input
+                    className={inputClass}
+                    placeholder="例：池袋駅 徒歩3分"
+                    value={placeStation}
+                    onChange={(e) => setPlaceStation(e.target.value)}
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <div className="glass-panel rounded-[28px] p-4 sm:p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--page-muted)]">
+                          Location Preview
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-[var(--page-ink)]">
+                          {hasResolvedLocation ? "この位置で勤務先を登録します" : "住所確認後に地図へピンを表示します"}
+                        </p>
+                        <p className="mt-1 text-xs leading-6 text-[var(--page-muted)]">
+                          番地まで入れると精度が上がります。確認後は地図をクリックしてピン位置を微調整できます。
+                        </p>
+                      </div>
+                      <span
+                        className={
+                          hasResolvedLocation
+                            ? isResolvedInArea
+                              ? "soft-pill"
+                              : "inline-flex items-center justify-center rounded-full border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600"
+                            : "soft-pill"
+                        }
+                        data-active={hasResolvedLocation && isResolvedInArea ? true : undefined}
+                      >
+                        {hasResolvedLocation ? (isResolvedInArea ? "日本国内" : "受付対象外") : "未確認"}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 h-[280px] overflow-hidden rounded-[24px] border border-[var(--line)] bg-white">
+                      <LocationPreviewMap
+                        lat={lat}
+                        lng={lng}
+                        title={placeName}
+                        address={trimmedAddress}
+                        inSubmissionArea={isResolvedInArea}
+                        interactive={hasResolvedLocation}
+                        onPickLocation={handleMapLocationPick}
+                      />
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--page-muted)]">
+                      {hasResolvedLocation ? (
+                        <>
+                          <span className="soft-pill">緯度 {lat?.toFixed(6)}</span>
+                          <span className="soft-pill">経度 {lng?.toFixed(6)}</span>
+                          <span className="soft-pill">
+                            {locationSource === "manual"
+                              ? "地図クリックで微調整済み"
+                              : `住所照合: ${locationProvider === "mapbox" ? "Mapbox" : "Nominatim"}`}
+                          </span>
+                        </>
+                      ) : (
+                        <p>まだ位置が確定していません。「住所を地図で確認」を押すとこの欄にピンが出ます。</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleAddressPreview}
+                  disabled={geocoding || !trimmedAddress}
+                  className="secondary-button flex-1 text-sm disabled:opacity-60"
+                >
+                  {geocoding ? "位置を確認中…" : "住所を地図で確認"}
+                </button>
+                <button type="submit" disabled={geocoding} className="primary-button flex-1 text-sm disabled:opacity-60">
+                  {geocoding ? "位置を確認中…" : "次へ進む"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === "review" && (
+            <form onSubmit={handleReviewSubmit} className="mt-6 space-y-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--page-muted)]">
+                  Step 2
+                </p>
+                <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+                  体験談を入力
+                </h2>
+              </div>
+
+              {!preselectedPlaceId && hasResolvedLocation && (
+                <div className="glass-panel rounded-[24px] p-4 text-sm text-[var(--page-muted)]">
+                  <p className="font-semibold text-[var(--page-ink)]">登録位置を確認済み</p>
+                  <p className="mt-2 leading-7">
+                    {placeName || "勤務先"} は地図上のピン位置で保存されます。位置を直したい場合は一度戻って再確認してください。
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">タイトル *</label>
+                <input
+                  className={inputClass}
+                  placeholder="例：シフトの強要が辛かった体験"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+
+              <div>
+                <label className="mb-3 block text-sm font-medium text-[var(--page-ink)]">
+                  カテゴリ（複数選択可）
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {REVIEW_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className="soft-pill transition-colors"
+                      data-active={tags.includes(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                  体験談 *
+                  <span className="ml-2 text-xs font-normal text-[var(--page-muted)]">
+                    50文字以上 / 主観として記述
+                  </span>
+                </label>
+                <textarea
+                  className={textareaClass}
+                  rows={7}
+                  placeholder="体験したことを具体的に書いてください。「〜と感じた」「〜と思った」などの主観表現を使うと掲載しやすくなります。"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  maxLength={3000}
+                />
+                <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                  <span className={prohibitedWarning ? "text-red-600" : "text-[var(--page-muted)]"}>
+                    {prohibitedWarning
+                      ? "断定的な表現や禁止ワードが含まれている可能性があります。"
+                      : "個人情報・断定表現は掲載できません。"}
+                  </span>
+                  <span className="text-[var(--page-muted)]">{body.length}/3000</span>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                    勤務開始（任意）
+                  </label>
+                  <input
+                    className={inputClass}
+                    placeholder="例：2023年春"
+                    value={periodFrom}
+                    onChange={(e) => setPeriodFrom(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">
+                    勤務終了（任意）
+                  </label>
+                  <input
+                    className={inputClass}
+                    placeholder="例：2024年夏"
+                    value={periodTo}
+                    onChange={(e) => setPeriodTo(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <label className="glass-panel flex items-start gap-3 rounded-[24px] p-4 text-sm text-[var(--page-muted)]">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-1 accent-blue-600"
+                />
+                <span className="leading-7">
+                  <Link href="/guidelines" className="font-semibold text-[var(--accent)] hover:opacity-80">
+                    投稿ガイドライン
+                  </Link>
+                  <span className="mx-1">および</span>
+                  <Link href="/terms" className="font-semibold text-[var(--accent)] hover:opacity-80">
+                    利用規約
+                  </Link>
+                  に同意します。投稿時の IP アドレスとユーザーエージェントは内部的に保存され、公開はされません。
+                </span>
+              </label>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {!preselectedPlaceId && (
+                  <button type="button" onClick={() => setStep("place")} className="secondary-button flex-1 text-sm">
+                    戻る
+                  </button>
+                )}
+                <button type="submit" disabled={submitting || !agreed} className="primary-button flex-1 text-sm disabled:opacity-60">
+                  {submitting ? "送信中…" : "投稿する"}
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
 
 export default function SubmitPage() {
   return (
-    <Suspense fallback={<main className="max-w-xl mx-auto px-4 py-8 text-sm text-gray-500">読み込み中…</main>}>
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-6xl px-4 py-10 text-sm text-[var(--page-muted)]">
+          読み込み中…
+        </main>
+      }
+    >
       <SubmitPageInner />
     </Suspense>
   );

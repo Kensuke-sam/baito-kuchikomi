@@ -55,6 +55,25 @@ function ReportPageInner() {
     );
   }
 
+  if (!targetType || !targetId) {
+    return (
+      <main className="max-w-md mx-auto px-4 py-8">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">通報フォーム</h1>
+        <p className="text-sm text-gray-600 mb-6">
+          通報は勤務先ページまたは口コミカードの「通報する」から対象を指定して送信してください。
+        </p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900 space-y-2">
+          <p className="font-semibold">対象が未指定です</p>
+          <p>先に口コミ一覧や勤務先詳細を開き、対象コンテンツから通報フォームへ進んでください。</p>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/list" className="text-blue-600 hover:underline text-sm">口コミ一覧へ</Link>
+          <Link href="/takedown" className="text-blue-600 hover:underline text-sm">削除申請はこちら</Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-md mx-auto px-4 py-8">
       <h1 className="text-xl font-bold text-gray-900 mb-6">通報フォーム</h1>

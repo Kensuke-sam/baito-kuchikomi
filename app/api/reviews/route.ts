@@ -40,16 +40,39 @@ export async function POST(req: Request) {
   const d = parsed.data;
   const ua = req.headers.get("user-agent") ?? "";
   const authorToken = randomBytes(16).toString("hex");
+  const title = sanitizeShortText(d.title, 100);
+  const reviewBody = sanitizeText(d.body);
+  const periodFrom = d.period_from ? sanitizeShortText(d.period_from, 30) || null : null;
+  const periodTo = d.period_to ? sanitizeShortText(d.period_to, 30) || null : null;
+
+  if (title.length < 5) {
+    return NextResponse.json(
+      { error: "タイトルは5文字以上で入力してください。" },
+      { status: 422 }
+    );
+  }
+
+  if (reviewBody.length < 50) {
+    return NextResponse.json(
+      { error: "本文は50文字以上で入力してください。" },
+      { status: 422 }
+    );
+  }
 
   const supabase = createAdminClient();
 
   // 勤務先が存在するか確認（pending/approved）
-  const { data: place } = await supabase
+  const { data: place, error: placeError } = await supabase
     .from("places")
     .select("id, status")
     .eq("id", d.place_id)
     .in("status", ["pending", "approved"])
-    .single();
+    .maybeSingle();
+
+  if (placeError) {
+    console.error("review place lookup failed", placeError);
+    return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
+  }
 
   if (!place) {
     return NextResponse.json({ error: "指定した勤務先が見つかりません。" }, { status: 404 });
@@ -59,11 +82,11 @@ export async function POST(req: Request) {
     .from("reviews")
     .insert({
       place_id:     d.place_id,
-      title:        sanitizeShortText(d.title, 100),
-      body:         sanitizeText(d.body),
+      title,
+      body:         reviewBody,
       tags:         d.tags,
-      period_from:  d.period_from ? sanitizeShortText(d.period_from, 30) : null,
-      period_to:    d.period_to   ? sanitizeShortText(d.period_to, 30)   : null,
+      period_from:  periodFrom,
+      period_to:    periodTo,
       status:       "pending",
       author_token: authorToken,
       author_ip:    ip,

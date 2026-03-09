@@ -8,55 +8,52 @@ interface Props {
 
 export function ReviewCard({ review, placeId }: Props) {
   return (
-    <article className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="font-semibold text-gray-800 text-sm leading-snug">
+    <article className="glass-panel rounded-[28px] p-5 transition-transform duration-150 hover:-translate-y-0.5">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <h3 className="text-base font-semibold leading-snug tracking-[-0.03em] text-[var(--page-ink)]">
           {review.title}
         </h3>
-        <span className="text-xs text-gray-400 shrink-0">
+        <span className="shrink-0 text-xs font-medium text-[var(--page-muted)]">
           {review.created_at.slice(0, 10)}
         </span>
       </div>
 
       {review.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="mb-3 flex flex-wrap gap-2">
           {review.tags.map((tag) => (
-            <span
-              key={tag}
-              className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full"
-            >
+            <span key={tag} className="soft-pill">
               {tag}
             </span>
           ))}
         </div>
       )}
 
-      <p className="text-sm text-gray-700 leading-relaxed line-clamp-4 whitespace-pre-line">
+      <p className="line-clamp-5 whitespace-pre-line text-sm leading-7 text-[var(--page-muted)]">
         {review.body}
       </p>
 
       {review.period_from && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="mt-3 text-xs text-[var(--page-muted)]">
           勤務期間: {review.period_from}
           {review.period_to ? ` 〜 ${review.period_to}` : " 〜"}
         </p>
       )}
 
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-4 flex items-center gap-3">
         <ReportButtonInline reviewId={review.id} />
         {placeId && (
           <Link
             href={`/places/${placeId}`}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs font-semibold text-[var(--accent)] hover:opacity-80"
           >
             詳細ページへ
           </Link>
         )}
       </div>
 
-      <p className="text-xs text-gray-400 mt-2 italic">
+      <p className="mt-3 text-xs italic text-[var(--page-muted)]">
         ※ 投稿内容の正確性は保証しません。削除申請・訂正は
-        <Link href="/takedown" className="text-blue-500 hover:underline ml-1">
+        <Link href="/takedown" className="ml-1 font-semibold text-[var(--accent)] hover:opacity-80">
           こちら
         </Link>
         から。
@@ -69,7 +66,7 @@ function ReportButtonInline({ reviewId }: { reviewId: string }) {
   return (
     <a
       href={`/report?type=review&id=${reviewId}`}
-      className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+      className="text-xs text-[var(--page-muted)] transition-colors hover:text-red-500"
     >
       通報する
     </a>
