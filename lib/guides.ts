@@ -1,0 +1,310 @@
+import { getPartnerLink, type PartnerLinkKey } from "@/lib/partnerLinks";
+
+export interface GuideSection {
+  title: string;
+  paragraphs: string[];
+  bullets?: string[];
+}
+
+export interface GuideAction {
+  eyebrow: string;
+  title: string;
+  body: string;
+  partnerKey: PartnerLinkKey;
+}
+
+export interface GuideLink {
+  href: string;
+  label: string;
+  description: string;
+}
+
+export interface GuideEntry {
+  slug: string;
+  category: "辞めたい" | "見分け方" | "単発";
+  title: string;
+  description: string;
+  excerpt: string;
+  intent: string;
+  readingTime: string;
+  publishedAt: string;
+  updatedAt: string;
+  keyPoints: string[];
+  sections: GuideSection[];
+  primaryAction: GuideAction;
+  secondaryAction: GuideAction;
+  relatedSlugs: string[];
+}
+
+const guides: GuideEntry[] = [
+  {
+    slug: "baito-yametai-daigakusei",
+    category: "辞めたい",
+    title: "バイトを辞めたい大学生へ 角が立ちにくい伝え方テンプレと次の動き方",
+    description:
+      "大学生がアルバイトを辞めたいと感じたときに、伝え方、即日で辞めたいときの注意点、次の収入を切らさないための動き方を整理した実践ガイドです。",
+    excerpt:
+      "辞めたい気持ちをそのままぶつけず、トラブルを増やさずに離れるための順番を整理します。",
+    intent: "今のバイトがしんどく、できれば早めに抜けたい大学生向け",
+    readingTime: "6分",
+    publishedAt: "2026-03-09",
+    updatedAt: "2026-03-09",
+    keyPoints: [
+      "先に次の収入源を押さえると、辞める判断がかなり楽になる",
+      "感情で責めず、学業や体調、予定変更を軸に伝える方がもめにくい",
+      "危険な職場なら、円満退職より安全確保を優先してよい",
+    ],
+    sections: [
+      {
+        title: "まず決めるべきことは『いつ辞めるか』ではなく『何を守るか』",
+        paragraphs: [
+          "大学生がバイトを辞めたいと感じる理由は、シフト、人間関係、体力、学業との両立などさまざまです。最初にやるべきなのは、自分が守りたいものを決めることです。",
+          "単位、生活費、メンタル、次の予定のどれが最優先かを決めるだけで、動き方が整理しやすくなります。生活費が不安なら、辞める前に単発や短期の逃げ先を確認しておく方が安全です。",
+        ],
+        bullets: [
+          "学業を守りたいなら、固定シフトの見直しが先",
+          "生活費を守りたいなら、次の求人や単発を先に確保",
+          "精神的につらいなら、連絡方法を短くして接触回数を減らす",
+        ],
+      },
+      {
+        title: "角が立ちにくい伝え方は『気持ち』より『続けられない理由』を短く伝える",
+        paragraphs: [
+          "辞めたい気持ちを長く説明すると、相手は説得や引き止めに入りやすくなります。大学生の場合は、学業、体調、家庭事情、予定変更などの継続困難な理由を短く伝える方が実務的です。",
+          "大事なのは、相手を責めないことと、交渉の余地を広げすぎないことです。『少しだけ続けられない?』に引き込まれないためにも、結論を先に出してください。",
+        ],
+        bullets: [
+          "最初の一言は『ご相談ではなく、ご報告です』の形にする",
+          "理由は1つに絞る",
+          "最終出勤日を自分から提示する",
+        ],
+      },
+      {
+        title: "今の職場が危ないと感じるなら、円満退職より安全確保を優先する",
+        paragraphs: [
+          "暴言、脅し、賃金説明の不透明さ、個人情報の扱いの雑さなどがあるなら、もめないことより自分の安全を優先した方がいい場面があります。",
+          "このサイトは法律相談の場ではありませんが、危険を感じるときは、証拠を残しつつ接触を最小限にする判断が必要です。削除申請や当事者対応が来ても運営がすぐ確認できるよう、こちらも管理ログを残す設計が大切です。",
+        ],
+        bullets: [
+          "シフト表、連絡履歴、給与明細のスクリーンショットを残す",
+          "電話より文面でやり取りする",
+          "怖さが強いなら、一人で受け取りに行かない",
+        ],
+      },
+      {
+        title: "辞めた後に困らないための『次の一手』を先に用意する",
+        paragraphs: [
+          "辞めたい人向けの記事で一番大事なのは、辞め方だけで終わらせないことです。次の働き口が見えないと、結局つらい職場に戻りやすくなります。",
+          "大学生なら、まずは単発・短期で資金をつなぎ、その後に長く続けられる職種へ切り替える二段構えが現実的です。接客が合わないなら倉庫や軽作業、固定シフトがつらいならスキマ系へ逃がす設計が分かりやすいです。",
+        ],
+        bullets: [
+          "今週分の生活費を確保する手段を持つ",
+          "次は『時給』より『続けやすさ』で選ぶ",
+          "人間関係で消耗したなら、一人で進めやすい職種を優先する",
+        ],
+      },
+    ],
+    primaryAction: {
+      eyebrow: "Escape Route",
+      title: "今の収入が切れるのが怖いなら、先に単発の逃げ先を確保する",
+      body: "辞める前に次の現金化ルートを見ておくと、焦って職場に残り続ける確率を下げられます。",
+      partnerKey: "singleDayJobs",
+    },
+    secondaryAction: {
+      eyebrow: "Next Step",
+      title: "長く続けられる別バイトも並行して見ておく",
+      body: "今の職場が合わないだけなら、職種を変えるだけでかなり楽になることがあります。",
+      partnerKey: "partTimeJobs",
+    },
+    relatedSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku"],
+  },
+  {
+    slug: "black-baito-miwakekata",
+    category: "見分け方",
+    title: "ブラックバイトを見分ける10のサイン 求人票・面接・初日で見るポイント",
+    description:
+      "ブラックバイトに近い職場を避けるために、求人票、面接、初日、働き始めた後のサインを分けて整理したチェックガイドです。",
+    excerpt:
+      "『なんとなく不安』を言語化すると、危ない求人をかなり避けやすくなります。",
+    intent: "怪しい求人やきつすぎる職場を避けたい大学生・初バイト層向け",
+    readingTime: "7分",
+    publishedAt: "2026-03-09",
+    updatedAt: "2026-03-09",
+    keyPoints: [
+      "高時給だけを強調し、条件の説明が薄い求人は要注意",
+      "面接で仕事内容が変わる求人はかなり危険",
+      "初日の違和感は、だいたい後から大きくなる",
+    ],
+    sections: [
+      {
+        title: "求人票で見るべきサイン",
+        paragraphs: [
+          "最初に見るべきなのは、仕事内容、勤務条件、研修、交通費、給与支払日が具体的に書かれているかです。高時給だけが大きく、他の情報が薄い求人はかなり危険です。",
+          "大学生向けの求人では『未経験歓迎』はよくありますが、教育体制の説明がないまま『誰でも簡単』『すぐ高収入』だけが強いものは避けた方が安全です。",
+        ],
+        bullets: [
+          "仕事内容がふわっとしている",
+          "ノルマや残業の説明がない",
+          "勤務地や所属店舗が途中で変わる可能性があるのに書かれていない",
+        ],
+      },
+      {
+        title: "面接で出やすいサイン",
+        paragraphs: [
+          "面接は、職場が応募者を見ている場であると同時に、応募者が職場を見る場でもあります。ここで違和感が強いなら、無理に入らない方が長期的には得です。",
+          "特に、質問に答えない、シフトを濁す、応募時と違う条件を出してくる、すぐ決めさせようとする、といった動きは危険度が高いです。",
+        ],
+        bullets: [
+          "『とにかく入ってから覚えて』が多い",
+          "店長や社員の言葉が強すぎる",
+          "辞退しにくい空気を作ってくる",
+        ],
+      },
+      {
+        title: "初日から気づけるサイン",
+        paragraphs: [
+          "初日の時点で、教育担当がいない、説明が毎回変わる、休憩ルールが曖昧、連絡系統が混乱しているなら、働き続けるほど消耗しやすくなります。",
+          "特に大学生の初バイトでは『自分が慣れていないだけかも』と考えがちですが、仕組みが壊れている職場は新人だけではどうにもなりません。",
+        ],
+        bullets: [
+          "休憩や退勤のルールが人によって違う",
+          "聞いた内容と実際の業務が違う",
+          "ミスをすぐ人格否定につなげる文化がある",
+        ],
+      },
+      {
+        title: "安全寄りの求人へ切り替えるときの考え方",
+        paragraphs: [
+          "危ない求人を避けたい人ほど、『楽そう』『時給が高い』より『ルールが見える』『仕事内容が具体的』を優先してください。仕事内容、研修、応募後の流れが具体的なサービスほど、初期の失敗は減りやすいです。",
+          "今すぐ働きたい場合でも、比較ページで最低限の条件だけは見てから応募した方が事故が少なくなります。",
+        ],
+        bullets: [
+          "仕事内容が具体的に書かれている求人を選ぶ",
+          "応募から勤務までの流れが明確なサービスを選ぶ",
+          "口コミや評判は『感情』ではなく『具体例』を見る",
+        ],
+      },
+    ],
+    primaryAction: {
+      eyebrow: "Safer Search",
+      title: "安全寄りの選択肢を先に見てから応募する",
+      body: "条件が見えやすい求人から比較すると、危ない募集を踏む確率を下げられます。",
+      partnerKey: "partTimeJobs",
+    },
+    secondaryAction: {
+      eyebrow: "Short Term",
+      title: "固定シフトが怖いなら、まず単発から試す",
+      body: "いきなり長期に入るより、短い勤務で相性を見た方が失敗しにくいです。",
+      partnerKey: "singleDayJobs",
+    },
+    relatedSlugs: ["baito-yametai-daigakusei", "tanpatsu-baito-app-hikaku"],
+  },
+  {
+    slug: "tanpatsu-baito-app-hikaku",
+    category: "単発",
+    title: "単発バイトアプリ比較 大学生が『すぐ働く』『失敗を減らす』ための選び方",
+    description:
+      "大学生が単発バイトアプリを選ぶときに見るべき点を、即日性、仕事内容、働きやすさ、安全性の観点から整理した比較ガイドです。",
+    excerpt:
+      "単発は便利ですが、選び方を間違えると次の日にまたしんどくなります。比較軸を先に持ってください。",
+    intent: "今すぐ働きたい、今のバイトの代わりを探したい人向け",
+    readingTime: "6分",
+    publishedAt: "2026-03-09",
+    updatedAt: "2026-03-09",
+    keyPoints: [
+      "最初は『すぐ働けるか』より『仕事内容が想像できるか』を重視する",
+      "単発は逃げ先として強いが、長期の本命とは分けて考える",
+      "大学生は学業との両立と移動コストも比較軸に入れる",
+    ],
+    sections: [
+      {
+        title: "単発バイトが向いている場面",
+        paragraphs: [
+          "単発バイトが一番役に立つのは、今のバイトがしんどくて一旦距離を置きたいとき、急ぎで生活費をつなぎたいとき、長期の前に仕事の感触を確かめたいときです。",
+          "逆に、安定したシフト収入や職場の居場所を求めるなら、単発だけでは足りません。あくまで逃げ先、つなぎ、試運転として使う方が失敗しにくいです。",
+        ],
+        bullets: [
+          "今週の収入を確保したい",
+          "固定シフトをいったん外したい",
+          "接客以外の仕事を試したい",
+        ],
+      },
+      {
+        title: "比較するときの4軸",
+        paragraphs: [
+          "単発サービスを見るときは、即日性、仕事内容の透明性、勤務地の近さ、サポートの分かりやすさの4つで比較するとブレにくいです。",
+          "『案件数が多い』だけでは、自分に合うとは限りません。大学生なら、講義の空き時間に合わせやすいか、深夜移動が必要ないかも重要です。",
+        ],
+        bullets: [
+          "応募から勤務までの流れが分かりやすいか",
+          "仕事内容が具体的か",
+          "勤務地や時間帯の選択肢が現実的か",
+          "遅刻やキャンセル時のルールが明確か",
+        ],
+      },
+      {
+        title: "単発を使うときの失敗しやすいパターン",
+        paragraphs: [
+          "仕事内容をよく見ずに応募する、通学時間を無視して遠い案件を入れる、授業後に体力を使い切る案件を連続で入れる、こういった使い方はかなり消耗します。",
+          "単発は『時給が高い案件を取るゲーム』ではなく、『今の自分が無理なく回せる仕事を選ぶ仕組み』と考えた方が続きます。",
+        ],
+        bullets: [
+          "説明が短すぎる案件に飛びつく",
+          "移動時間を軽く見る",
+          "週の前半から詰め込みすぎる",
+        ],
+      },
+      {
+        title: "単発の次に考えるべきこと",
+        paragraphs: [
+          "単発で一息つけたら、次は長期で続けやすい仕事に移る方が安定します。『単発でしのぐ』と『次を選び直す』はセットで考えると、同じ悩みを繰り返しにくくなります。",
+          "このサイトの口コミや職種別ガイドも使いながら、『何がつらかったのか』を一度言語化してから次を選ぶと失敗が減ります。",
+        ],
+        bullets: [
+          "接客がつらいなら裏方寄りへ",
+          "固定シフトがつらいなら柔軟な案件へ",
+          "人間関係がつらいなら一人で進めやすい業務へ",
+        ],
+      },
+    ],
+    primaryAction: {
+      eyebrow: "Fast Route",
+      title: "今週分の収入をつなぐなら、単発候補を先に比較する",
+      body: "急いでいるときほど、仕事内容と勤務フローが見えやすい選択肢から見る方が失敗が減ります。",
+      partnerKey: "singleDayJobs",
+    },
+    secondaryAction: {
+      eyebrow: "Longer Fit",
+      title: "単発の次に、続けやすい長期バイトも探しておく",
+      body: "つなぎの後に本命を探す動きまで作っておくと、また同じ悩みに戻りにくくなります。",
+      partnerKey: "partTimeJobs",
+    },
+    relatedSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata"],
+  },
+];
+
+export function getAllGuides(): GuideEntry[] {
+  return guides;
+}
+
+export function getGuideBySlug(slug: string): GuideEntry | undefined {
+  return guides.find((guide) => guide.slug === slug);
+}
+
+export function getFeaturedGuides(limit = 3): GuideEntry[] {
+  return guides.slice(0, limit);
+}
+
+export function getRelatedGuides(slugs: string[]): GuideEntry[] {
+  return slugs.map((slug) => getGuideBySlug(slug)).filter((guide): guide is GuideEntry => Boolean(guide));
+}
+
+export function resolveGuideAction(action: GuideAction) {
+  const partner = getPartnerLink(action.partnerKey);
+  return {
+    ...action,
+    href: partner.href,
+    label: partner.label,
+    description: partner.description,
+  };
+}

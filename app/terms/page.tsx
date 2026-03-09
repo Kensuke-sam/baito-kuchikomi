@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "利用規約・免責事項",
+  description: "バイト体験談マップの利用規約、免責事項、ログ保存、削除申請対応の方針です。",
+};
+
 export default function TermsPage() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8 prose prose-sm">
@@ -41,6 +49,13 @@ export default function TermsPage() {
       <p>
         投稿・通報・削除申請等に際して、内部識別子、IPアドレス、ユーザーエージェント、作成時刻その他必要な運用ログを内部的に記録します。
         これらは公開しません。法令に基づく要請または権利侵害対応のため必要がある場合、必要な範囲で利用または提供することがあります。
+      </p>
+      <p>
+        個人情報、Cookie、アクセス解析、広告計測の取り扱い方針は
+        <Link href="/privacy" className="ml-1 underline">
+          プライバシーポリシー
+        </Link>
+        でも案内しています。
       </p>
 
       <h2>禁止行為</h2>

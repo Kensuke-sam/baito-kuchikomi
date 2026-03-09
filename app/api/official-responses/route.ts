@@ -32,6 +32,13 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
   const responseBody = sanitizeText(d.body);
 
+  if (responseBody.length < 20) {
+    return NextResponse.json(
+      { error: "コメントは20文字以上で入力してください。" },
+      { status: 422 }
+    );
+  }
+
   const { data: place, error: placeError } = await supabase
     .from("places")
     .select("id")

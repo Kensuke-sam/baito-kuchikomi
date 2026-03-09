@@ -51,12 +51,19 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
   const name = sanitizeShortText(d.name, 100);
   const address = sanitizeShortText(d.address, 200);
-  const nearestStation = d.nearest_station ? sanitizeShortText(d.nearest_station, 100) : null;
-  const areaTag = d.area_tag ? sanitizeShortText(d.area_tag, 50) : null;
+  const nearestStation = d.nearest_station ? sanitizeShortText(d.nearest_station, 100) || null : null;
+  const areaTag = d.area_tag ? sanitizeShortText(d.area_tag, 50) || null : null;
+
+  if (!name || !address) {
+    return NextResponse.json(
+      { error: "勤務先名と住所は空欄のまま投稿できません。" },
+      { status: 422 }
+    );
+  }
 
   if (!isWithinSubmissionArea(d.lat, d.lng)) {
     return NextResponse.json(
-      { error: "現在は対象エリア内のみ投稿できます。" },
+      { error: "現在は日本国内の勤務先のみ投稿できます。" },
       { status: 422 }
     );
   }
