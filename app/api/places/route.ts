@@ -22,7 +22,10 @@ export async function GET() {
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("places select failed", error);
+    return NextResponse.json({ error: "勤務先の取得に失敗しました。" }, { status: 500 });
+  }
   return NextResponse.json(data);
 }
 
@@ -68,7 +71,8 @@ export async function POST(req: Request) {
     .limit(1);
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    console.error("places existing check failed", existingError);
+    return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
   }
 
   const existingPlace = existingPlaces?.[0];
@@ -90,6 +94,9 @@ export async function POST(req: Request) {
     .select("id")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("places insert failed", error);
+    return NextResponse.json({ error: "勤務先の登録に失敗しました。" }, { status: 500 });
+  }
   return NextResponse.json({ id: data.id }, { status: 201 });
 }

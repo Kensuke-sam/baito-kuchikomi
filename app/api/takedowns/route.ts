@@ -53,7 +53,10 @@ export async function POST(req: Request) {
     status:        "received",
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("takedown insert failed", error);
+    return NextResponse.json({ error: "削除申請の送信に失敗しました。" }, { status: 500 });
+  }
 
   await sendAdminNotification({
     subject: "[バイト体験談マップ] 新しい削除申請",

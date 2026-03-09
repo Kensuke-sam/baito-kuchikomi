@@ -28,3 +28,13 @@ export function sanitizeUrl(input: unknown): string {
   if (/^(javascript|data|vbscript):/i.test(s)) return "";
   return s;
 }
+
+/** Leaflet ポップアップなど dangerouslySetInnerHTML 相当の箇所で使う HTML エスケープ */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}

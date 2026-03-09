@@ -54,7 +54,10 @@ export async function POST(req: Request) {
     sender_ua:  ua.slice(0, 500),
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("official_responses insert failed", error);
+    return NextResponse.json({ error: "コメントの送信に失敗しました。" }, { status: 500 });
+  }
 
   await sendAdminNotification({
     subject: "[バイト体験談マップ] 新しい当事者コメント",

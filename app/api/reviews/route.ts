@@ -72,6 +72,9 @@ export async function POST(req: Request) {
     .select("id")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("reviews insert failed", error);
+    return NextResponse.json({ error: "体験談の投稿に失敗しました。" }, { status: 500 });
+  }
   return NextResponse.json({ id: data.id }, { status: 201 });
 }

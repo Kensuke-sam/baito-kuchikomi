@@ -41,9 +41,9 @@ export default async function PlaceDetailPage({ params }: Props) {
     supabase.from("official_responses").select("*").eq("place_id", id).eq("status", "approved").order("created_at", { ascending: false }),
   ]);
 
-  if (!place) notFound();
+  if (!place) return notFound();
 
-  const p = place as Place;
+  const p: Place = place;
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">

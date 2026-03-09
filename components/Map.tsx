@@ -1,115 +1,133 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import type { Place } from "@/lib/types";
+import { escapeHtml } from "@/lib/sanitize";
 
 interface Props {
   places: Place[];
   onPlaceClick?: (place: Place) => void;
 }
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 export default function Map({ places, onPlaceClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerLayerRef = useRef<LayerGroup | null>(null);
+  const leafletRef = useRef<typeof import("leaflet") | null>(null);
   const [mapError, setMapError] = useState("");
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token) {
-      setMapError("地図設定が未完了のため、一覧ページから確認してください。");
-      return;
-    }
+    let cancelled = false;
+    let cleanupResize: (() => void) | undefined;
 
-    try {
-      mapboxgl.accessToken = token;
+    void (async () => {
+      try {
+        const L = await import("leaflet");
+        if (cancelled || !containerRef.current || mapRef.current) return;
 
-      mapRef.current = new mapboxgl.Map({
-        container: containerRef.current,
-        style: "mapbox://styles/mapbox/light-v11",
-        center: [139.7103, 35.7281], // 池袋
-        zoom: 13,
-      });
+        leafletRef.current = L;
 
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-    } catch {
-      setMapError("地図の初期化に失敗しました。少し時間を置いて再読み込みしてください。");
-    }
+        const map = L.map(containerRef.current, {
+          center: [35.7281, 139.7103], // 池袋
+          zoom: 13,
+          zoomControl: false,
+        });
+
+        mapRef.current = map;
+        markerLayerRef.current = L.layerGroup().addTo(map);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        L.control.zoom({ position: "topright" }).addTo(map);
+
+        const handleResize = () => map.invalidateSize();
+        cleanupResize = () => window.removeEventListener("resize", handleResize);
+        window.addEventListener("resize", handleResize);
+
+        requestAnimationFrame(() => {
+          map.invalidateSize();
+        });
+        setMapReady(true);
+      } catch {
+        setMapError("地図の初期化に失敗しました。少し時間を置いて再読み込みしてください。");
+      }
+    })();
 
     return () => {
+      cancelled = true;
+      cleanupResize?.();
+      markerLayerRef.current?.clearLayers();
+      markerLayerRef.current = null;
+      leafletRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
   }, []);
 
   const addMarkers = useCallback(() => {
-    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const markerLayer = markerLayerRef.current;
+    const L = leafletRef.current;
+    if (!map || !markerLayer || !L) return;
 
-    // 既存マーカーをクリア
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+    markerLayer.clearLayers();
 
     places.forEach((place) => {
-      const el = document.createElement("div");
-      el.className =
-        "w-8 h-8 rounded-full bg-blue-600 border-2 border-white shadow-lg cursor-pointer flex items-center justify-center text-white text-xs font-bold hover:bg-blue-700 transition-colors";
-      el.textContent = "📋";
-      el.title = place.name;
+      const marker = L.marker([place.lat, place.lng], {
+        icon: L.divIcon({
+          className: "place-marker",
+          html: `
+            <div class="place-marker__inner" title="${escapeHtml(place.name)}">
+              <span aria-hidden="true">📋</span>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          popupAnchor: [0, -18],
+        }),
+      });
 
-      const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
-        .setHTML(
-          `<div class="p-2 min-w-[180px]">
-            <p class="font-bold text-sm">${escapeHtml(place.name)}</p>
-            <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(place.address)}</p>
-            <a href="/places/${encodeURIComponent(place.id)}" class="text-xs text-blue-600 underline mt-1 block">
-              体験談を見る →
-            </a>
-          </div>`
-        );
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([place.lng, place.lat])
-        .setPopup(popup)
-        .addTo(mapRef.current!);
+      marker.bindPopup(
+        `<div class="p-2 min-w-[180px]">
+          <p class="font-bold text-sm">${escapeHtml(place.name)}</p>
+          <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(place.address)}</p>
+          <a href="/places/${encodeURIComponent(place.id)}" class="text-xs text-blue-600 underline mt-1 block">
+            体験談を見る →
+          </a>
+        </div>`
+      );
 
       if (onPlaceClick) {
-        el.addEventListener("click", () => onPlaceClick(place));
+        marker.on("click", () => onPlaceClick(place));
       }
 
-      markersRef.current.push(marker);
+      marker.addTo(markerLayer);
     });
 
-    // マーカーが複数あればすべて表示されるようにフィット
     if (places.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds();
-      places.forEach((p) => bounds.extend([p.lng, p.lat]));
-      mapRef.current.fitBounds(bounds, { padding: 60, maxZoom: 15 });
+      const bounds = L.latLngBounds(places.map((place) => [place.lat, place.lng] as [number, number]));
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
     } else if (places.length === 1) {
-      mapRef.current.flyTo({ center: [places[0].lng, places[0].lat], zoom: 14 });
+      map.flyTo([places[0].lat, places[0].lng], 14);
+    } else {
+      map.setView([35.7281, 139.7103], 13);
     }
+
+    requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
   }, [places, onPlaceClick]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
-    if (mapRef.current.loaded()) {
-      addMarkers();
-    } else {
-      mapRef.current.once("load", addMarkers);
-    }
-  }, [addMarkers]);
+    if (!mapReady) return;
+    addMarkers();
+  }, [addMarkers, mapReady]);
 
   if (mapError) {
     return (
