@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Place } from "@/lib/types";
 import Map from "@/components/Map";
-import { SUBMISSION_AREA_LABEL } from "@/lib/siteConfig";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -18,7 +17,6 @@ export default async function HomePage() {
       {/* 注意バナー */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-800">
         ⚠️ 掲載情報はユーザーの主観的な体験談です。正確性を保証しません。
-        <span className="ml-2">対象エリア: {SUBMISSION_AREA_LABEL}</span>
         <Link href="/guidelines" className="underline ml-2">投稿ガイドライン</Link>
         <Link href="/terms" className="underline ml-2">免責事項</Link>
       </div>

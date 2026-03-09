@@ -4,9 +4,6 @@ function parseNumber(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export const SUBMISSION_AREA_LABEL =
-  process.env.NEXT_PUBLIC_SUBMISSION_AREA_LABEL?.trim() || "赤羽〜池袋周辺";
-
 export const SUBMISSION_AREA_BOUNDS = (() => {
   const minLat = parseNumber(process.env.NEXT_PUBLIC_ALLOWED_MIN_LAT);
   const maxLat = parseNumber(process.env.NEXT_PUBLIC_ALLOWED_MAX_LAT);

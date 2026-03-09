@@ -88,11 +88,10 @@ supabase/migrations/      スキーマ定義・追加マイグレーション
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_MAPBOX_TOKEN`
-- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SITE_URL` (`https://baito-review.com`)
 
 ### 任意だが本番推奨
 
-- `NEXT_PUBLIC_SUBMISSION_AREA_LABEL`
 - `NEXT_PUBLIC_ALLOWED_MIN_LAT`
 - `NEXT_PUBLIC_ALLOWED_MAX_LAT`
 - `NEXT_PUBLIC_ALLOWED_MIN_LNG`
@@ -118,7 +117,12 @@ cp .env.example .env.local
 ### 3. Supabase セットアップ
 
 1. [Supabase](https://supabase.com/) でプロジェクトを作成
-2. Authentication > URL Configuration > Redirect URLs に `http://localhost:3000/auth/callback` を追加
+2. Authentication > URL Configuration で以下を設定
+   - Site URL: `https://baito-review.com`
+   - Redirect URLs:
+     - `http://localhost:3000/auth/callback`
+     - `https://baito-review.com/auth/callback`
+     - `https://www.baito-review.com/auth/callback`
 3. SQL Editor で `supabase/migrations/001_initial.sql` と `supabase/migrations/002_revision_workflow.sql` を順に実行
 4. Authentication > Users で管理者ユーザーを作成
 5. SQL Editor で管理者を登録
@@ -150,19 +154,36 @@ npm run dev
 
 ## デプロイ
 
-Vercel を前提にしています。
+Vercel + 独自ドメイン `baito-review.com` を前提にしています。
 
 ```bash
-npx vercel
+npx vercel link
+npx vercel --prod
 ```
+
+本番反映までの流れは以下です。
+
+1. Vercel でこの GitHub リポジトリを Project として接続する
+2. Vercel の Production Environment Variables に `.env.local` と同じ値を登録する
+   - `NEXT_PUBLIC_SITE_URL=https://baito-review.com`
+   - `NEXT_PUBLIC_MAPBOX_TOKEN`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - 必要なら `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFICATION_EMAIL`
+3. Vercel Project Settings > Domains に以下を追加する
+   - `baito-review.com` を Primary Domain にする
+   - `www.baito-review.com` も追加する
+4. ドメイン管理会社の DNS を Vercel が案内する値へ切り替える
+   - 現在別サーバーを向いている場合は、その A/CNAME を Vercel の指定値へ置き換える
+5. `npx vercel --prod` で本番デプロイする
 
 本番環境では以下を必ず確認してください。
 
-- Vercel にすべての環境変数を設定
-- Supabase の Redirect URL と Site URL を本番ドメインへ変更
-- Mapbox の許可ドメインを本番ドメインに制限
-- Resend の送信ドメイン認証を完了
-- 管理者アカウントを 2 名以上で運用
+- Supabase の Site URL / Redirect URLs が `baito-review.com` に揃っている
+- Mapbox の許可 URL を `https://baito-review.com/*`, `https://www.baito-review.com/*`, `http://localhost:3000/*` に制限する
+- Resend の送信ドメイン認証を完了し、`RESEND_FROM_EMAIL` を `no-reply@baito-review.com` のような独自ドメインにする
+- 管理者アカウントを 2 名以上で運用する
 - 削除申請と通報の通知先メールが有効
 
 ## 公開前チェック

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
 import { rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText } from "@/lib/sanitize";
-import { isWithinSubmissionArea, SUBMISSION_AREA_LABEL } from "@/lib/siteConfig";
+import { isWithinSubmissionArea } from "@/lib/siteConfig";
 
 const schema = z.object({
   name:            z.string().min(1).max(100),
@@ -49,13 +49,11 @@ export async function POST(req: Request) {
   const name = sanitizeShortText(d.name, 100);
   const address = sanitizeShortText(d.address, 200);
   const nearestStation = d.nearest_station ? sanitizeShortText(d.nearest_station, 100) : null;
-  const areaTag = d.area_tag
-    ? sanitizeShortText(d.area_tag, 50)
-    : sanitizeShortText(SUBMISSION_AREA_LABEL, 50);
+  const areaTag = d.area_tag ? sanitizeShortText(d.area_tag, 50) : null;
 
   if (!isWithinSubmissionArea(d.lat, d.lng)) {
     return NextResponse.json(
-      { error: `現在は ${SUBMISSION_AREA_LABEL} の範囲内のみ投稿できます。` },
+      { error: "現在は対象エリア内のみ投稿できます。" },
       { status: 422 }
     );
   }

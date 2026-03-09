@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { SUBMISSION_AREA_LABEL } from "@/lib/siteConfig";
 
 export default function GuidelinesPage() {
   return (
@@ -12,9 +11,7 @@ export default function GuidelinesPage() {
         本サービスは、アルバイト・パートの体験談を主観として共有するプラットフォームです。
         投稿内容はユーザー個人の体験・意見であり、運営は内容の正確性を保証しません。
       </p>
-      <p>
-        現在の投稿対象エリアは <strong>{SUBMISSION_AREA_LABEL}</strong> です。対象外エリアの勤務先は受け付けません。
-      </p>
+      <p>対象外エリアの勤務先は受け付けません。</p>
 
       <h2>投稿できること</h2>
       <ul>

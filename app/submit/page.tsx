@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { REVIEW_TAGS } from "@/lib/types";
 import { readErrorMessage } from "@/lib/http";
-import { isWithinSubmissionArea, SUBMISSION_AREA_LABEL } from "@/lib/siteConfig";
+import { isWithinSubmissionArea } from "@/lib/siteConfig";
 
 const PROHIBITED_PATTERNS = [
   /詐欺/,
@@ -126,7 +126,7 @@ function SubmitPageInner() {
       return;
     }
     if (!isWithinSubmissionArea(result.lat, result.lng)) {
-      setError(`現在は ${SUBMISSION_AREA_LABEL} の範囲内のみ投稿できます。`);
+      setError("現在は対象エリア内のみ投稿できます。");
       return;
     }
 
@@ -217,7 +217,7 @@ function SubmitPageInner() {
         <p>・ここは体験談（主観）を共有する場所です。断定表現や個人特定は書かないでください。</p>
         <p>・未払い・違法などの断定は避け、事実として体験したことを時系列で書いてください。</p>
         <p>・個人名・電話番号・SNSアカウントなど個人を特定できる情報は記載禁止です。</p>
-        <p>・現在の投稿対象エリア: {SUBMISSION_AREA_LABEL}</p>
+        <p>・対象外エリアの勤務先は受け付けていません。</p>
         <Link href="/guidelines" className="underline text-blue-700">詳細ガイドラインを見る →</Link>
       </div>
 
