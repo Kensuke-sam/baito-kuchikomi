@@ -47,10 +47,27 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (targetError) {
-    return NextResponse.json({ error: targetError.message }, { status: 500 });
+    console.error("report target check failed", targetError);
+    return NextResponse.json({ error: "通報対象の確認に失敗しました。" }, { status: 500 });
   }
   if (!target) {
     return NextResponse.json({ error: "通報対象が見つかりません。" }, { status: 404 });
+  }
+
+  // 同一 IP から同じ対象への重複通報を防止
+  const { data: existingReport } = await supabase
+    .from("reports")
+    .select("id")
+    .eq("reporter_ip", ip)
+    .eq("target_type", d.target_type)
+    .eq("target_id", d.target_id)
+    .maybeSingle();
+
+  if (existingReport) {
+    return NextResponse.json(
+      { error: "この投稿は既に通報済みです。" },
+      { status: 409 }
+    );
   }
 
   const { error } = await supabase.from("reports").insert({
@@ -63,18 +80,43 @@ export async function POST(req: Request) {
     status:       "received",
   });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("reports insert failed", error);
+    return NextResponse.json({ error: "通報の送信に失敗しました。" }, { status: 500 });
+  }
+
+  // 通報件数を確認して自動非表示の発動を通知に含める
+  const AUTO_HIDE_THRESHOLD = 3;
+  const { count: reportCount } = await supabase
+    .from("reports")
+    .select("*", { count: "exact", head: true })
+    .eq("target_type", d.target_type)
+    .eq("target_id", d.target_id);
+
+  const wasAutoHidden = (reportCount ?? 0) >= AUTO_HIDE_THRESHOLD;
+
+  const notificationLines = [
+    "新しい通報を受け付けました。",
+    `対象種別: ${d.target_type}`,
+    `対象ID: ${d.target_id}`,
+    `理由: ${reason}`,
+    `詳細: ${detail ?? "なし"}`,
+    `累計通報件数: ${reportCount ?? 0}`,
+  ];
+
+  if (wasAutoHidden) {
+    notificationLines.push(
+      "",
+      `⚠️ 通報が ${AUTO_HIDE_THRESHOLD} 件に達したため、自動的に非表示（承認待ち）に変更されました。管理画面で確認してください。`
+    );
+  }
 
   await sendAdminNotification({
-    subject: "[バイト体験談マップ] 新しい通報",
-    lines: [
-      "新しい通報を受け付けました。",
-      `対象種別: ${d.target_type}`,
-      `対象ID: ${d.target_id}`,
-      `理由: ${reason}`,
-      `詳細: ${detail ?? "なし"}`,
-    ],
+    subject: wasAutoHidden
+      ? "[バイト体験談マップ] ⚠️ 自動非表示: 通報が閾値に到達"
+      : "[バイト体験談マップ] 新しい通報",
+    lines: notificationLines,
   });
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ ok: true, auto_hidden: wasAutoHidden }, { status: 201 });
 }
