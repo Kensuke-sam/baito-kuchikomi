@@ -106,6 +106,13 @@ export default function LocationPreviewMap({
   }, [interactive, mapReady, onPickLocation]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.getContainer().style.cursor = interactive ? "crosshair" : "";
+  }, [interactive, mapReady]);
+
+  useEffect(() => {
     if (!mapReady) return;
 
     const map = mapRef.current;

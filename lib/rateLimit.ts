@@ -363,10 +363,44 @@ export function createRateLimitHeaders(result: RateLimitResult): Headers {
   return headers;
 }
 
+function extractIpCandidate(value: string | null): string | null {
+  if (!value) return null;
+
+  const firstPart = value.split(",")[0]?.trim();
+  if (!firstPart) return null;
+
+  const withoutMetadata = firstPart.split(";")[0]?.trim();
+  if (!withoutMetadata) return null;
+
+  const candidate = withoutMetadata.replace(/^for=/i, "").trim().replace(/^"|"$/g, "");
+  if (!candidate || candidate.toLowerCase() === "unknown") return null;
+
+  if (candidate.startsWith("[") && candidate.includes("]")) {
+    return candidate.slice(1, candidate.indexOf("]")).trim() || null;
+  }
+
+  return candidate;
+}
+
 export function getRealIp(req: Request): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
+  const headerNames = [
+    "x-forwarded-for",
+    "x-real-ip",
+    "x-vercel-forwarded-for",
+    "cf-connecting-ip",
+    "fly-client-ip",
+    "x-client-ip",
+    "true-client-ip",
+    "fastly-client-ip",
+    "forwarded",
+  ] as const;
+
+  for (const headerName of headerNames) {
+    const candidate = extractIpCandidate(req.headers.get(headerName));
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return "unknown";
 }

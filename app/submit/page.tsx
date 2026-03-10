@@ -29,6 +29,22 @@ function createSubmissionToken() {
   return "";
 }
 
+function buildAddressResolutionErrorMessage(message: string): string {
+  if (message.includes("混み合っています")) {
+    return "住所確認が混み合っています。少し待って再試行するか、「地図から直接選ぶ」でおおよその位置にピンを置いてください。";
+  }
+
+  if (message.includes("特定できませんでした")) {
+    return `${message} 番地まで入力するか、「地図から直接選ぶ」で位置を指定してください。`;
+  }
+
+  if (message.includes("住所確認に失敗しました")) {
+    return `${message} 必要であれば「地図から直接選ぶ」でも続行できます。`;
+  }
+
+  return message;
+}
+
 function SubmitPageInner() {
   const searchParams = useSearchParams();
   const preselectedPlaceId = searchParams.get("place_id");
@@ -51,6 +67,7 @@ function SubmitPageInner() {
   const [resolvedAddress, setResolvedAddress] = useState("");
   const [locationSource, setLocationSource] = useState<"geocode" | "manual" | null>(null);
   const [locationProvider, setLocationProvider] = useState<"mapbox" | "nominatim" | null>(null);
+  const [manualLocationMode, setManualLocationMode] = useState(false);
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -130,7 +147,8 @@ function SubmitPageInner() {
     const result = await geocode(address);
     if (!result.ok) {
       clearResolvedLocation();
-      setError(result.error);
+      setManualLocationMode(true);
+      setError(buildAddressResolutionErrorMessage(result.error));
       return null;
     }
 
@@ -139,6 +157,7 @@ function SubmitPageInner() {
     setResolvedAddress(address);
     setLocationSource("geocode");
     setLocationProvider(result.provider);
+    setManualLocationMode(false);
 
     return result;
   }
@@ -154,9 +173,18 @@ function SubmitPageInner() {
   }
 
   function handleAddressChange(value: string) {
+    const nextAddress = value.trim();
     setPlaceAddress(value);
-    if (resolvedAddress && value.trim() !== resolvedAddress) {
+    if (!nextAddress) {
       clearResolvedLocation();
+      setManualLocationMode(false);
+      setError("");
+      return;
+    }
+
+    if (resolvedAddress && nextAddress !== resolvedAddress) {
+      clearResolvedLocation();
+      setManualLocationMode(false);
     }
   }
 
@@ -165,7 +193,19 @@ function SubmitPageInner() {
     setLng(nextLng);
     setResolvedAddress(trimmedAddress);
     setLocationSource("manual");
+    setLocationProvider(null);
+    setManualLocationMode(true);
     setError("");
+  }
+
+  function handleEnableManualLocation() {
+    if (!trimmedAddress) {
+      setError("住所を入力してください。");
+      return;
+    }
+
+    setError("");
+    setManualLocationMode(true);
   }
 
   async function handlePlaceSubmit(e: React.FormEvent) {
@@ -174,6 +214,11 @@ function SubmitPageInner() {
 
     if (!placeName || !placeAddress) {
       setError("勤務先名と住所は必須です。");
+      return;
+    }
+
+    if (manualLocationMode && !hasResolvedLocation) {
+      setError("地図をクリックして勤務先の位置にピンを置いてください。");
       return;
     }
 
@@ -468,10 +513,16 @@ function SubmitPageInner() {
                           Location Preview
                         </p>
                         <p className="mt-2 text-sm font-semibold text-[var(--page-ink)]">
-                          {hasResolvedLocation ? "この位置で勤務先を登録します" : "住所確認後に地図へピンを表示します"}
+                          {hasResolvedLocation
+                            ? "この位置で勤務先を登録します"
+                            : manualLocationMode
+                              ? "地図をクリックして勤務先の位置を選んでください"
+                              : "住所確認後または地図から位置を選べます"}
                         </p>
                         <p className="mt-1 text-xs leading-6 text-[var(--page-muted)]">
-                          番地まで入れると精度が上がります。確認後は地図をクリックしてピン位置を微調整できます。
+                          {manualLocationMode && !hasResolvedLocation
+                            ? "住所確認がうまくいかないときは、地図をクリックしておおよその位置にピンを置けます。"
+                            : "番地まで入れると精度が上がります。確認後は地図をクリックしてピン位置を微調整できます。"}
                         </p>
                       </div>
                       <span
@@ -484,7 +535,13 @@ function SubmitPageInner() {
                         }
                         data-active={hasResolvedLocation && isResolvedInArea ? true : undefined}
                       >
-                        {hasResolvedLocation ? (isResolvedInArea ? "日本国内" : "受付対象外") : "未確認"}
+                        {hasResolvedLocation
+                          ? isResolvedInArea
+                            ? "日本国内"
+                            : "受付対象外"
+                          : manualLocationMode
+                            ? "地図で選択中"
+                            : "未確認"}
                       </span>
                     </div>
 
@@ -495,7 +552,7 @@ function SubmitPageInner() {
                         title={placeName}
                         address={trimmedAddress}
                         inSubmissionArea={isResolvedInArea}
-                        interactive={hasResolvedLocation}
+                        interactive={hasResolvedLocation || manualLocationMode}
                         onPickLocation={handleMapLocationPick}
                       />
                     </div>
@@ -512,7 +569,11 @@ function SubmitPageInner() {
                           </span>
                         </>
                       ) : (
-                        <p>まだ位置が確定していません。「住所を地図で確認」を押すとこの欄にピンが出ます。</p>
+                        <p>
+                          {manualLocationMode
+                            ? "地図をクリックするとピンを置けます。細かい位置はあとで再度クリックして調整できます。"
+                            : "まだ位置が確定していません。「住所を地図で確認」または「地図から直接選ぶ」で進められます。"}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -528,6 +589,16 @@ function SubmitPageInner() {
                 >
                   {geocoding ? "位置を確認中…" : "住所を地図で確認"}
                 </button>
+                {!hasResolvedLocation && (
+                  <button
+                    type="button"
+                    onClick={handleEnableManualLocation}
+                    disabled={geocoding || !trimmedAddress}
+                    className="secondary-button flex-1 text-sm disabled:opacity-60"
+                  >
+                    {manualLocationMode ? "地図をクリックして選択中" : "地図から直接選ぶ"}
+                  </button>
+                )}
                 <button type="submit" disabled={geocoding} className="primary-button flex-1 text-sm disabled:opacity-60">
                   {geocoding ? "位置を確認中…" : "次へ進む"}
                 </button>
