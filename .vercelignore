@@ -1,0 +1,11 @@
+.git
+.gitignore
+.agents
+qai-checker-mini
+node_modules
+.next
+.env.local
+.env
+coverage
+playwright-report
+test-results
