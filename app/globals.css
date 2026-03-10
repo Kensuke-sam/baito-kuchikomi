@@ -381,8 +381,7 @@ body::before {
   gap: 0.7rem;
   border: 1px solid rgba(30, 26, 16, 0.16);
   border-radius: 18px;
-  background:
-    linear-gradient(90deg, rgba(244, 211, 107, 0.96) 0 1.1rem, rgba(30, 26, 16, 0.9) 1.1rem 1.5rem, rgba(244, 211, 107, 0.96) 1.5rem 1.9rem, rgba(255, 252, 243, 0.92) 1.9rem 100%);
+  background: rgba(255, 252, 243, 0.92);
   box-shadow: 0 12px 24px rgba(63, 48, 12, 0.08);
   padding: 0.85rem 1rem;
 }
