@@ -18,6 +18,26 @@ const LEGACY_DEFAULT_JAPAN_BOUNDS: Bounds = {
   maxLng: 146.0,
 };
 
+// 日本全国を単一の大きな矩形で扱うと国外地点まで通るため、
+// 既定値は主要地域と離島を分けた複数領域で判定する。
+const DEFAULT_JAPAN_REGIONS: readonly Bounds[] = [
+  { minLat: 30.5, maxLat: 45.8, minLng: 130.7, maxLng: 145.9 }, // 本州・四国・九州・北海道
+  { minLat: 33.8, maxLat: 34.8, minLng: 128.8, maxLng: 129.7 }, // 対馬周辺
+  { minLat: 27.0, maxLat: 30.0, minLng: 128.0, maxLng: 131.5 }, // 奄美・トカラ
+  { minLat: 24.0, maxLat: 27.2, minLng: 122.5, maxLng: 129.8 }, // 沖縄・先島
+  { minLat: 23.0, maxLat: 28.0, minLng: 141.0, maxLng: 144.5 }, // 小笠原
+  { minLat: 24.0, maxLat: 25.5, minLng: 153.0, maxLng: 154.5 }, // 南鳥島
+] as const;
+
+function isSameBounds(a: Bounds, b: Bounds): boolean {
+  return (
+    a.minLat === b.minLat &&
+    a.maxLat === b.maxLat &&
+    a.minLng === b.minLng &&
+    a.maxLng === b.maxLng
+  );
+}
+
 function getCombinedBounds(regions: readonly Bounds[]): Bounds {
   return regions.reduce(
     (combined, region) => ({
@@ -49,7 +69,9 @@ const customBounds = (() => {
 })();
 
 export const SUBMISSION_AREA_REGIONS: readonly Bounds[] =
-  [customBounds ?? LEGACY_DEFAULT_JAPAN_BOUNDS];
+  !customBounds || isSameBounds(customBounds, LEGACY_DEFAULT_JAPAN_BOUNDS)
+    ? DEFAULT_JAPAN_REGIONS
+    : [customBounds];
 
 export const SUBMISSION_AREA_BOUNDS = getCombinedBounds(SUBMISSION_AREA_REGIONS);
 export const SUBMISSION_AREA_PREVIEW_BOUNDS = customBounds ?? LEGACY_DEFAULT_JAPAN_BOUNDS;
