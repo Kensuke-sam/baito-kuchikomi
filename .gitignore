@@ -25,6 +25,9 @@
 # misc
 .DS_Store
 .claude/
+.venv/
+__pycache__/
+*.py[cod]
 *\ 2.ts
 *\ 2.tsx
 *.pem
