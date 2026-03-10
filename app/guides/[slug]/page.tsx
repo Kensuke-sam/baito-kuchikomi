@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionSpotlight } from "@/components/ActionSpotlight";
@@ -56,6 +57,13 @@ export default async function GuideDetailPage({ params }: Props) {
   const relatedJobs = getJobHubs().slice(0, 3);
   const relatedAreas = getAreaHubs().slice(0, 3);
   const relatedApps = getAppHubs().slice(0, 3);
+
+  const guideBanners: Record<string, string> = {
+    "baito-yametai-daigakusei": "/images/guide-yametai.png",
+    "black-baito-miwakekata": "/images/guide-miwakekata.png",
+    "tanpatsu-baito-app-hikaku": "/images/guide-tanpatsu.png",
+  };
+  const bannerSrc = guideBanners[guide.slug];
 
   const articleStructuredData = {
     "@context": "https://schema.org",
@@ -124,7 +132,20 @@ export default async function GuideDetailPage({ params }: Props) {
         <span>{guide.category}</span>
       </nav>
 
-      <article className="section-frame p-6 sm:p-8">
+      <article className="section-frame overflow-hidden">
+        {bannerSrc && (
+          <div className="guide-detail-banner">
+            <Image
+              src={bannerSrc}
+              alt={guide.title}
+              width={1200}
+              height={400}
+              className="guide-detail-banner-img"
+              priority
+            />
+          </div>
+        )}
+        <div className="p-6 sm:p-8">
         <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="soft-pill" data-active>
@@ -229,6 +250,7 @@ export default async function GuideDetailPage({ params }: Props) {
               </div>
             </div>
           </aside>
+        </div>
         </div>
       </article>
 

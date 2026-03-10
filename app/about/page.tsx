@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -30,13 +31,26 @@ export default function AboutPage() {
   return (
     <main className="app-shell mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <section className="section-frame p-6 sm:p-8">
-        <span className="eyebrow">このサイトについて</span>
-        <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">
-          サイトについて
-        </h1>
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--page-muted)]">
-          ここでは、このサイトの目的、掲載基準、問題がある場合の連絡先をまとめています。労働や生活に関わる情報を扱うため、公開の考え方と対応窓口を先に案内します。
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center md:gap-8">
+          <div className="flex-1">
+            <span className="eyebrow">このサイトについて</span>
+            <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">
+              サイトについて
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--page-muted)]">
+              ここでは、このサイトの目的、掲載基準、問題がある場合の連絡先をまとめています。労働や生活に関わる情報を扱うため、公開の考え方と対応窓口を先に案内します。
+            </p>
+          </div>
+          <div className="mt-6 md:mt-0 flex-shrink-0">
+            <Image
+              src="/images/about-illustration.png"
+              alt="安全なバイト選びを支援するイラスト"
+              width={280}
+              height={280}
+              className="about-illustration"
+            />
+          </div>
+        </div>
 
         <div className="mt-8 space-y-4">
           {sections.map((section) => (

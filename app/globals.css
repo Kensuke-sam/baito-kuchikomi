@@ -436,3 +436,85 @@ body::before {
   line-height: 1.7;
   margin-top: 0.35rem;
 }
+
+/* ── 画像スタイル ── */
+
+.guide-card-thumbnail {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+
+.guide-card-thumbnail:hover {
+  transform: scale(1.03);
+  opacity: 0.92;
+}
+
+.hub-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgba(63, 48, 12, 0.08);
+  flex-shrink: 0;
+}
+
+.hero-illustration-wrapper {
+  flex-shrink: 0;
+}
+
+.hero-illustration {
+  width: 320px;
+  height: auto;
+  border-radius: 24px;
+  box-shadow: var(--shadow-xl);
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.about-illustration {
+  width: 280px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.guide-detail-banner {
+  position: relative;
+  width: 100%;
+  max-height: 280px;
+  overflow: hidden;
+}
+
+.guide-detail-banner-img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .guide-card-thumbnail {
+    height: 140px;
+  }
+
+  .hub-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .about-illustration {
+    width: 200px;
+  }
+
+  .guide-detail-banner-img {
+    height: 180px;
+  }
+}
