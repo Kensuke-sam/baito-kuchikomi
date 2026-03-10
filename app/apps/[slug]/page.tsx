@@ -88,7 +88,7 @@ export default async function AppDetailPage({ params }: Props) {
             <PromotionNotice className="mb-4" />
           )}
           <ActionSpotlight
-            eyebrow="Next Action"
+            eyebrow="次のアクション"
             title={hub.ctaTitle}
             body={hub.ctaBody}
             href={partner.href}
@@ -152,7 +152,7 @@ export default async function AppDetailPage({ params }: Props) {
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <span className="eyebrow">Other Services</span>
+            <span className="eyebrow">他のサービス</span>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
               他のサービスも比較する
             </h2>
@@ -170,7 +170,7 @@ export default async function AppDetailPage({ params }: Props) {
 
       <section className="mt-8">
         <div className="mb-4">
-          <span className="eyebrow">Related Guides</span>
+          <span className="eyebrow">関連ガイド</span>
           <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
             関連ガイド
           </h2>

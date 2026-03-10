@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { HubCard } from "@/components/HubCard";
 import { ReviewCard } from "@/components/ReviewCard";
 import { getFeaturedGuides } from "@/lib/guides";
@@ -104,7 +105,30 @@ export default async function PlaceDetailPage({ params }: Props) {
           体験談 ({(reviews ?? []).length} 件)
         </h2>
         {(reviews ?? []).length === 0 ? (
-          <p className="text-gray-500 text-sm py-8 text-center">まだ体験談がありません。</p>
+          <FirstReviewCallout
+            eyebrow="最初の体験談募集"
+            title="この勤務先の公開済み体験談はまだありません。"
+            description="比較材料がないままだと、この勤務先ページの価値が出ません。この職場で働いたことがある人の最初の1件を募集しています。"
+            highlights={[
+              {
+                title: "シフトの実感",
+                body: "入りやすさ、急な変更、テスト期間との両立など、実際の回し方が分かると助かります。",
+              },
+              {
+                title: "人間関係と教育",
+                body: "教え方、忙しい時間帯の雰囲気、質問しやすさは短い文章でも伝わります。",
+              },
+              {
+                title: "辞めやすさや負担感",
+                body: "きつかった点と辞めやすさは、次に応募する人の判断材料になりやすいです。",
+              },
+            ]}
+            primaryHref={`/submit?place_id=${p.id}`}
+            primaryLabel="この勤務先の体験談を投稿"
+            secondaryHref="/guidelines"
+            secondaryLabel="投稿ガイドライン"
+            footnote="投稿は匿名で送信でき、公開前に管理者が確認します。"
+          />
         ) : (
           <div className="space-y-4">
             {(reviews as Review[]).map((review) => (
@@ -115,7 +139,7 @@ export default async function PlaceDetailPage({ params }: Props) {
       </section>
 
       <section className="mt-8 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Related Guides</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">関連ガイド</p>
         <h2 className="mt-3 text-lg font-bold text-gray-900">次の候補を探す前に読みたい記事</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {featuredGuides.map((guide) => (
@@ -136,7 +160,7 @@ export default async function PlaceDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Job Type Hubs</span>
+              <span className="eyebrow">職種ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 職種から比較
               </h2>
@@ -155,7 +179,7 @@ export default async function PlaceDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Area Hubs</span>
+              <span className="eyebrow">地域ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 地域から比較
               </h2>
@@ -174,7 +198,7 @@ export default async function PlaceDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Apps & Services</span>
+              <span className="eyebrow">アプリ・サービス</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 サービス比較
               </h2>

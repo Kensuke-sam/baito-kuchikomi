@@ -64,11 +64,11 @@ export function ReviewCard({ review, placeId }: Props) {
 
 function ReportButtonInline({ reviewId }: { reviewId: string }) {
   return (
-    <a
+    <Link
       href={`/report?type=review&id=${reviewId}`}
       className="text-xs text-[var(--page-muted)] transition-colors hover:text-red-500"
     >
       通報する
-    </a>
+    </Link>
   );
 }

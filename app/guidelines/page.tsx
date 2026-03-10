@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "投稿ガイドライン",
+  description: "投稿できる内容、禁止事項、ログ保持、削除申請・訂正対応の方針をまとめたページです。",
+};
 
 export default function GuidelinesPage() {
   return (

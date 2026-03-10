@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function GuideCta({
-  eyebrow = "Next Action",
+  eyebrow = "次のアクション",
   title,
   description,
   primary,
