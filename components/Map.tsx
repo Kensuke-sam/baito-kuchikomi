@@ -84,7 +84,7 @@ export default function Map({ places, onPlaceClick }: Props) {
           className: "place-marker",
           html: `
             <div class="place-marker__inner" title="${escapeHtml(place.name)}">
-              <span aria-hidden="true">📋</span>
+              <span class="place-marker__dot" aria-hidden="true"></span>
             </div>
           `,
           iconSize: [32, 32],
@@ -96,8 +96,8 @@ export default function Map({ places, onPlaceClick }: Props) {
       marker.bindPopup(
         `<div class="p-2 min-w-[180px]">
           <p class="font-bold text-sm">${escapeHtml(place.name)}</p>
-          <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(place.address)}</p>
-          <a href="/places/${encodeURIComponent(place.id)}" class="text-xs text-blue-600 underline mt-1 block">
+          <p class="text-xs mt-0.5" style="color: var(--page-muted)">${escapeHtml(place.address)}</p>
+          <a href="/places/${encodeURIComponent(place.id)}" class="text-xs underline mt-1 block" style="color: var(--accent)">
             体験談を見る →
           </a>
         </div>`

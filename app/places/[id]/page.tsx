@@ -54,24 +54,25 @@ export default async function PlaceDetailPage({ params }: Props) {
   const p: Place = place;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
+    <main className="app-shell mx-auto max-w-3xl px-3 py-8 sm:px-4 sm:py-10">
       {/* 勤務先情報 */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">{p.name}</h1>
-        <p className="text-sm text-gray-500">📍 {p.address}</p>
+      <div className="section-frame p-5 sm:p-6 mb-6">
+        <span className="eyebrow">勤務先詳細</span>
+        <h1 className="mt-4 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">{p.name}</h1>
+        <p className="mt-2 text-sm text-[var(--page-muted)]">📍 {p.address}</p>
         {p.nearest_station && (
-          <p className="text-sm text-gray-500">🚉 最寄り駅: {p.nearest_station}</p>
+          <p className="text-sm text-[var(--page-muted)]">🚉 最寄り駅: {p.nearest_station}</p>
         )}
-        <div className="mt-3 flex gap-3">
+        <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href={`/submit?place_id=${p.id}`}
-            className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-medium"
+            className="primary-button text-sm"
           >
             この勤務先の体験談を投稿
           </Link>
           <a
             href={`/report?type=place&id=${p.id}`}
-            className="text-sm text-gray-500 hover:text-red-500 px-2 py-1.5"
+            className="secondary-button text-sm"
           >
             この勤務先を通報
           </a>
@@ -79,21 +80,21 @@ export default async function PlaceDetailPage({ params }: Props) {
       </div>
 
       {/* 免責 */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6 text-xs text-amber-800">
+      <div className="glass-panel rounded-[24px] p-4 mb-6 text-xs text-[var(--page-muted)]">
         投稿内容の正確性は保証しません。削除申請・訂正は
-        <Link href="/takedown" className="underline ml-1">こちら</Link>
+        <Link href="/takedown" className="font-semibold text-[var(--accent)] hover:opacity-80 ml-1">こちら</Link>
         から。
       </div>
 
       {/* 当事者コメント */}
       {(responses ?? []).length > 0 && (
         <section className="mb-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-2">当事者・企業からのコメント</h2>
+          <h2 className="text-sm font-semibold text-[var(--page-ink)] mb-2">当事者・企業からのコメント</h2>
           {(responses as OfficialResponse[]).map((res) => (
-            <div key={res.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-2">
-              <p className="text-xs text-blue-700 font-semibold mb-1">【当事者コメント】</p>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{res.body}</p>
-              <p className="text-xs text-gray-400 mt-1">{res.created_at.slice(0, 10)}</p>
+            <div key={res.id} className="glass-panel rounded-[24px] p-4 mb-2">
+              <p className="text-xs font-semibold text-[var(--accent)] mb-1">【当事者コメント】</p>
+              <p className="text-sm text-[var(--page-muted)] whitespace-pre-line">{res.body}</p>
+              <p className="text-xs text-[var(--page-muted)] mt-1">{res.created_at.slice(0, 10)}</p>
             </div>
           ))}
         </section>
@@ -101,7 +102,7 @@ export default async function PlaceDetailPage({ params }: Props) {
 
       {/* 体験談一覧 */}
       <section>
-        <h2 className="text-base font-bold text-gray-900 mb-4">
+        <h2 className="text-base font-semibold text-[var(--page-ink)] mb-4">
           体験談 ({(reviews ?? []).length} 件)
         </h2>
         {(reviews ?? []).length === 0 ? (
@@ -138,19 +139,19 @@ export default async function PlaceDetailPage({ params }: Props) {
         )}
       </section>
 
-      <section className="mt-8 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">関連ガイド</p>
-        <h2 className="mt-3 text-lg font-bold text-gray-900">次の候補を探す前に読みたい記事</h2>
+      <section className="mt-8 section-frame p-5 sm:p-6">
+        <span className="eyebrow">関連ガイド</span>
+        <h2 className="mt-3 text-lg font-semibold tracking-[-0.04em] text-[var(--page-ink)]">次の候補を探す前に読みたい記事</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {featuredGuides.map((guide) => (
             <Link
               key={guide.slug}
               href={`/guides/${guide.slug}`}
-              className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 hover:border-blue-300"
+              className="glass-panel rounded-[24px] px-4 py-4 transition-transform duration-150 hover:-translate-y-0.5"
             >
-              <p className="text-xs font-semibold text-blue-600">{guide.category}</p>
-              <p className="mt-2 text-sm font-semibold text-gray-900">{guide.title}</p>
-              <p className="mt-2 text-xs leading-6 text-gray-500">{guide.description}</p>
+              <p className="text-xs font-semibold text-[var(--accent)]">{guide.category}</p>
+              <p className="mt-2 text-sm font-semibold text-[var(--page-ink)]">{guide.title}</p>
+              <p className="mt-2 text-xs leading-6 text-[var(--page-muted)]">{guide.description}</p>
             </Link>
           ))}
         </div>
@@ -216,12 +217,12 @@ export default async function PlaceDetailPage({ params }: Props) {
       </section>
 
       {/* 当事者コメント投稿誘導 */}
-      <div className="mt-8 border border-gray-200 rounded-lg p-4 bg-gray-50 text-sm text-gray-600">
-        <p className="font-semibold mb-1">この勤務先の当事者・企業の方へ</p>
-        <p className="text-xs mb-2">投稿内容への反論・訂正をコメントとして掲載できます（管理者確認後）。</p>
+      <div className="mt-8 glass-panel rounded-[28px] p-5 text-sm text-[var(--page-muted)]">
+        <p className="font-semibold text-[var(--page-ink)] mb-1">この勤務先の当事者・企業の方へ</p>
+        <p className="text-xs mb-3">投稿内容への反論・訂正をコメントとして掲載できます（管理者確認後）。</p>
         <Link
           href={`/official-response?place_id=${p.id}`}
-          className="text-blue-600 hover:underline text-xs"
+          className="inline-flex text-sm font-semibold text-[var(--accent)] hover:opacity-80"
         >
           当事者コメントを送る →
         </Link>

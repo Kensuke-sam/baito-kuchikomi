@@ -48,17 +48,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "対象の勤務先が見つかりません。" }, { status: 404 });
   }
 
+  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
+
   const { error } = await admin
     .from("places")
-    .update({ status: parsed.data.status })
+    .update({ status: parsed.data.status, admin_notes: adminNotes })
     .eq("id", id);
 
   if (error) {
     console.error("place update failed", error);
     return NextResponse.json({ error: "勤務先の更新に失敗しました。" }, { status: 500 });
   }
-
-  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
 
   const { error: auditError } = await admin.from("audit_logs").insert({
     admin_id:    auth.user.id,

@@ -43,6 +43,12 @@ export default async function AdminPlacesPage() {
                 </div>
               </div>
 
+              {(place as Place & { admin_notes?: string }).admin_notes && (
+                <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+                  📝 管理者メモ: {(place as Place & { admin_notes?: string }).admin_notes}
+                </div>
+              )}
+
               {noteMap.get(place.id) && (
                 <div className="mb-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900">
                   直近の管理メモ: {noteMap.get(place.id)}

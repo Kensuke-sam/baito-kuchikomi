@@ -2,18 +2,20 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --page-bg: #edf3ef;
-  --page-ink: #14261f;
-  --page-muted: #5f6f67;
-  --panel: rgba(255, 255, 255, 0.78);
-  --panel-strong: rgba(255, 255, 255, 0.92);
-  --line: rgba(20, 38, 31, 0.1);
-  --line-strong: rgba(20, 38, 31, 0.18);
-  --accent: #2563eb;
-  --accent-deep: #0f172a;
-  --accent-soft: rgba(37, 99, 235, 0.12);
-  --shadow-xl: 0 24px 70px rgba(17, 30, 24, 0.12);
-  --shadow-md: 0 16px 38px rgba(17, 30, 24, 0.08);
+  --page-bg: #ece4bd;
+  --page-ink: #1e1a10;
+  --page-muted: #615742;
+  --panel: rgba(250, 247, 234, 0.88);
+  --panel-strong: rgba(255, 252, 243, 0.96);
+  --line: rgba(30, 26, 16, 0.14);
+  --line-strong: rgba(30, 26, 16, 0.22);
+  --accent: #8a5b00;
+  --accent-deep: #262211;
+  --accent-soft: rgba(138, 91, 0, 0.12);
+  --marker-fill: #4b8b42;
+  --marker-fill-deep: #2d6428;
+  --shadow-xl: 0 24px 60px rgba(63, 48, 12, 0.1);
+  --shadow-md: 0 14px 32px rgba(63, 48, 12, 0.08);
 }
 
 html {
@@ -23,9 +25,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 30%),
-    radial-gradient(circle at 85% 15%, rgba(45, 212, 191, 0.16), transparent 24%),
-    linear-gradient(180deg, #f7fbf8 0%, #edf3ef 45%, #f8fbf9 100%);
+    radial-gradient(circle at 10% 12%, rgba(75, 139, 66, 0.16), transparent 24%),
+    radial-gradient(circle at 86% 14%, rgba(214, 171, 72, 0.18), transparent 18%),
+    linear-gradient(180deg, #f8f3db 0%, #ece4bd 48%, #f5efd1 100%);
   color: var(--page-ink);
   font-family: "Avenir Next", "Hiragino Sans", "Noto Sans JP", sans-serif;
 }
@@ -36,47 +38,96 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.56) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.56) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.32), transparent 85%);
-  opacity: 0.48;
+    linear-gradient(rgba(80, 70, 34, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 70, 34, 0.08) 1px, transparent 1px);
+  background-size: 68px 68px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent 88%);
+  opacity: 0.42;
   z-index: -1;
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.16);
+  background: rgba(214, 171, 72, 0.32);
 }
 
 .app-shell {
   position: relative;
 }
 
+/* ── モバイルマップヒーロー ── */
+.mobile-map-hero {
+  position: relative;
+  height: calc(100svh - 64px);
+  margin: 0 -0.75rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-map-hero {
+    margin: 0 -1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-map-hero {
+    display: none;
+  }
+}
+
+.mobile-map-hero .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.mobile-map-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 400;
+}
+
+.mobile-map-overlay > * {
+  pointer-events: auto;
+}
+
+.mobile-map-fade {
+  background: linear-gradient(0deg, var(--page-bg) 0%, transparent 100%);
+  height: 120px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
 .section-frame {
-  border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.68));
-  border-radius: 30px;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.92), rgba(247, 241, 220, 0.86));
+  border-radius: 22px;
   box-shadow: var(--shadow-xl);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
 }
 
 .glass-panel {
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: var(--panel);
+  border: 1px solid rgba(255, 252, 243, 0.72);
+  background: linear-gradient(180deg, var(--panel-strong), var(--panel));
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
 }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  border: 1px solid rgba(30, 26, 16, 0.14);
   border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.08);
-  color: rgba(15, 23, 42, 0.78);
-  font-size: 0.72rem;
+  background: rgba(33, 31, 24, 0.94);
+  color: #fff1b3;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   padding: 0.45rem 0.8rem;
   text-transform: uppercase;
 }
@@ -84,10 +135,10 @@ body::before {
 .field-input,
 .field-textarea {
   width: 100%;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 252, 243, 0.92);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
   padding: 0.85rem 1rem;
   transition:
     border-color 150ms ease,
@@ -98,9 +149,9 @@ body::before {
 .field-input:focus,
 .field-textarea:focus {
   outline: none;
-  border-color: rgba(37, 99, 235, 0.38);
+  border-color: rgba(138, 91, 0, 0.42);
   box-shadow:
-    0 0 0 4px rgba(37, 99, 235, 0.12),
+    0 0 0 4px rgba(214, 171, 72, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -115,7 +166,8 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  border-radius: 9999px;
+  border-radius: 14px;
+  border: 1px solid transparent;
   font-weight: 700;
   line-height: 1;
   padding: 0.95rem 1.3rem;
@@ -132,14 +184,16 @@ body::before {
 }
 
 .primary-button {
-  background: linear-gradient(135deg, var(--accent-deep), var(--accent));
-  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
-  color: white;
+  border-color: rgba(38, 34, 17, 0.18);
+  background: linear-gradient(180deg, #f6d36b, #d7a32c);
+  box-shadow: 0 14px 28px rgba(138, 91, 0, 0.2);
+  color: var(--accent-deep);
 }
 
 .secondary-button {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--line-strong);
+  background: rgba(255, 252, 243, 0.92);
+  box-shadow: 0 8px 18px rgba(63, 48, 12, 0.05);
   color: var(--page-ink);
 }
 
@@ -148,18 +202,18 @@ body::before {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  border: 1px solid rgba(20, 38, 31, 0.08);
-  background: rgba(255, 255, 255, 0.86);
-  color: rgba(20, 38, 31, 0.75);
+  border: 1px solid rgba(30, 26, 16, 0.1);
+  background: rgba(247, 241, 220, 0.86);
+  color: rgba(30, 26, 16, 0.75);
   font-size: 0.74rem;
   font-weight: 600;
   padding: 0.45rem 0.8rem;
 }
 
 .soft-pill[data-active="true"] {
-  border-color: rgba(37, 99, 235, 0.18);
-  background: rgba(37, 99, 235, 0.12);
-  color: rgba(29, 78, 216, 0.96);
+  border-color: rgba(75, 139, 66, 0.24);
+  background: rgba(75, 139, 66, 0.14);
+  color: rgba(45, 100, 40, 0.96);
 }
 
 .map-frame {
@@ -167,24 +221,27 @@ body::before {
 }
 
 .map-frame .leaflet-container {
-  border-radius: 26px;
+  border-radius: 18px;
 }
 
 .leaflet-container {
   height: 100%;
   width: 100%;
-  background: #f8fafc;
+  background: #dce8d0;
   font: inherit;
 }
 
 .leaflet-control-zoom a {
-  border-color: rgba(20, 38, 31, 0.14) !important;
+  border-color: rgba(30, 26, 16, 0.18) !important;
+  background: rgba(255, 252, 243, 0.94) !important;
   color: var(--page-ink) !important;
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 18px;
-  box-shadow: 0 18px 36px rgba(17, 30, 24, 0.18);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 252, 243, 0.96);
+  box-shadow: 0 18px 36px rgba(63, 48, 12, 0.18);
 }
 
 .leaflet-popup-tip {
@@ -198,27 +255,35 @@ body::before {
 
 .place-marker__inner {
   display: flex;
-  height: 32px;
-  width: 32px;
+  height: 34px;
+  width: 34px;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  border: 2px solid #fff;
-  background: #2563eb;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
-  color: #fff;
-  font-size: 14px;
-  line-height: 1;
+  border-radius: 12px 12px 12px 3px;
+  border: 2px solid #fff7cf;
+  background: linear-gradient(180deg, var(--marker-fill), var(--marker-fill-deep));
+  box-shadow: 0 12px 24px rgba(45, 100, 40, 0.28);
   transition:
     transform 150ms ease,
     box-shadow 150ms ease,
     background-color 150ms ease;
+  transform: rotate(-45deg);
+}
+
+.place-marker__dot {
+  display: block;
+  height: 10px;
+  width: 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(30, 26, 16, 0.16);
+  background: #fff2b0;
+  transform: rotate(45deg);
 }
 
 .place-marker__inner:hover {
-  background: #1d4ed8;
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.34);
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #5b9f51, var(--marker-fill));
+  box-shadow: 0 14px 30px rgba(45, 100, 40, 0.34);
+  transform: rotate(-45deg) translateY(-1px);
 }
 
 .preview-marker {
@@ -300,11 +365,74 @@ body::before {
 .guide-tip {
   margin-top: 1rem;
   border-radius: 20px;
-  border: 1px solid rgba(37, 99, 235, 0.14);
-  background: rgba(37, 99, 235, 0.09);
-  color: rgba(29, 78, 216, 0.96);
+  border: 1px solid rgba(138, 91, 0, 0.14);
+  background: rgba(214, 171, 72, 0.12);
+  color: rgba(115, 75, 0, 0.96);
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.8;
   padding: 0.95rem 1rem;
+}
+
+.notice-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid rgba(30, 26, 16, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(244, 211, 107, 0.96) 0 1.1rem, rgba(30, 26, 16, 0.9) 1.1rem 1.5rem, rgba(244, 211, 107, 0.96) 1.5rem 1.9rem, rgba(255, 252, 243, 0.92) 1.9rem 100%);
+  box-shadow: 0 12px 24px rgba(63, 48, 12, 0.08);
+  padding: 0.85rem 1rem;
+}
+
+.notice-strip__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(30, 26, 16, 0.94);
+  color: #fff2b0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 0.38rem 0.7rem;
+  text-transform: uppercase;
+}
+
+.record-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.record-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 243, 0.92), rgba(247, 241, 220, 0.88));
+  box-shadow: 0 12px 24px rgba(63, 48, 12, 0.06);
+  padding: 1rem;
+}
+
+.record-card__label {
+  color: var(--page-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.record-card__value {
+  color: var(--page-ink);
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  margin-top: 0.35rem;
+}
+
+.record-card__note {
+  color: var(--page-muted);
+  font-size: 0.84rem;
+  line-height: 1.7;
+  margin-top: 0.35rem;
 }

@@ -47,18 +47,83 @@ export default async function HomePage() {
       href: "/list",
     },
   ];
+  const recordStats = [
+    {
+      label: "掲載済み勤務先",
+      value: String(approvedPlaces.length),
+      note:
+        approvedPlaces.length > 0
+          ? "管理者確認を通った勤務先だけを地図に反映"
+          : "最初の勤務先投稿を受付中",
+    },
+    {
+      label: "公開済み体験談",
+      value: String(approvedReviews),
+      note:
+        approvedReviews > 0
+          ? "公開後は一覧と勤務先ページの両方に表示"
+          : "まだ公開 0 件。最初の投稿を募集中",
+    },
+    {
+      label: "対応窓口",
+      value: "3",
+      note: "通報 / 削除申請 / 当事者コメント",
+    },
+  ];
+  const mapReadingNotes = [
+    "ピンは管理者確認を通った勤務先だけを表示",
+    "詳細ページでは体験談の本文と投稿時期を確認",
+    "問題がある場合は通報・削除申請・当事者コメントへ",
+  ];
 
   return (
     <main className="app-shell px-3 pb-6 pt-3 sm:px-4 sm:pb-8">
+      {/* ── モバイル: マップヒーロー ── */}
+      <section className="mobile-map-hero">
+        <Map places={approvedPlaces} />
+        <div className="mobile-map-fade" />
+        <div className="mobile-map-overlay">
+          <div className="px-4 pb-6">
+            <div className="notice-strip mb-3">
+              <span className="notice-strip__label">掲載前提</span>
+              <p className="text-xs leading-6 text-[var(--page-ink)]">
+                {approvedPlaces.length > 0
+                  ? `掲載 ${approvedPlaces.length} 件 / 体験談 ${approvedReviews} 件。主観レビューを管理者確認後に公開しています。`
+                  : "投稿受付中。主観レビューを管理者確認後に公開します。"}
+              </p>
+            </div>
+            <div className="glass-panel mb-3 rounded-[18px] px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--page-muted)]">
+                    掲載地図を確認
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-[var(--page-ink)]">地図から勤務先を探す</p>
+                  <p className="text-xs text-[var(--page-muted)] mt-0.5">
+                    {approvedPlaces.length > 0
+                      ? "ピンを開くと勤務先詳細へ移動できます"
+                      : "最初の勤務先と体験談の投稿を募集しています"}
+                  </p>
+                </div>
+                <Link href={approvedPlaces.length > 0 ? "/list" : "/submit"} className="primary-button px-4 py-2 text-xs whitespace-nowrap">
+                  {approvedPlaces.length > 0 ? "一覧で確認" : "投稿する"}
+                </Link>
+              </div>
+            </div>
+            <p className="text-center text-xs text-[var(--page-muted)] opacity-80">↓ 下へスクロールして読み方とガイドを見る</p>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_360px]">
         <section className="section-frame p-6 sm:p-8">
           <div>
-            <span className="eyebrow">悩み別ルート</span>
+            <span className="eyebrow">掲載地図と体験談</span>
             <h1 className="mt-4 max-w-4xl text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-5xl">
-              辞めたい気持ちから、次のバイト探しまで。
+              避けたい勤務先を、地図と体験談で先に確認する。
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--page-muted)] sm:text-base">
-              ブラックバイトを避けたい、きつい職場から離れたい、大学生活と両立できる仕事に替えたい。そんな悩みを解決記事と口コミの両方から探せるようにしました。
+              働き始めてから気づきやすいシフト、人間関係、研修、辞めやすさを、主観レビューと実践ガイドの両方から読めるようにしています。求人票だけでは見えにくい実感を、先に比較するための入口です。
             </p>
             {isZeroReviewLaunch && (
               <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--accent)]">
@@ -67,14 +132,37 @@ export default async function HomePage() {
             )}
           </div>
 
+          <div className="notice-strip mt-6">
+            <span className="notice-strip__label">閲覧前の前提</span>
+            <p className="text-sm leading-6 text-[var(--page-ink)]">
+              掲載内容は主観レビューです。断定情報ではなく、勤務先選びの比較材料として読める形に整えています。
+            </p>
+          </div>
+
+          <div className="record-grid mt-6 md:grid-cols-3">
+            {recordStats.map((stat) => (
+              <div key={stat.label} className="record-card">
+                <p className="record-card__label">{stat.label}</p>
+                <p className="record-card__value">{stat.value}</p>
+                <p className="record-card__note">{stat.note}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-8 grid gap-3 md:grid-cols-2">
-            {primaryRoutes.map((route) => (
+            {primaryRoutes.map((route, index) => (
               <Link
                 key={route.href}
                 href={route.href}
-                className="glass-panel rounded-[26px] p-5 transition-transform duration-150 hover:-translate-y-0.5"
+                className="glass-panel rounded-[20px] border-l-4 border-l-[var(--marker-fill)] p-5 transition-transform duration-150 hover:-translate-y-0.5"
               >
-                <p className="text-sm font-semibold text-[var(--page-ink)]">{route.title}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="soft-pill">ROUTE {String(index + 1).padStart(2, "0")}</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--page-muted)]">
+                    悩み別
+                  </span>
+                </div>
+                <p className="mt-3 text-sm font-semibold text-[var(--page-ink)]">{route.title}</p>
                 <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">{route.description}</p>
                 <p className="mt-4 text-sm font-semibold text-[var(--accent)]">このルートを見る →</p>
               </Link>
@@ -97,6 +185,19 @@ export default async function HomePage() {
         <aside className="section-frame flex flex-col gap-4 p-6 sm:p-7">
           <div className="glass-panel rounded-[24px] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
+              掲載台帳
+            </p>
+            <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+              {approvedPlaces.length}
+            </p>
+            <p className="mt-2 text-sm text-[var(--page-muted)]">
+              {approvedPlaces.length > 0
+                ? "承認済みの勤務先だけを地図と一覧に表示しています。"
+                : "まだ表示中の勤務先はありません。最初の登録を受け付けています。"}
+            </p>
+          </div>
+          <div className="glass-panel rounded-[24px] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
               公開済みの体験談
             </p>
             <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
@@ -110,31 +211,16 @@ export default async function HomePage() {
           </div>
           <div className="glass-panel rounded-[24px] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-              掲載済みの勤務先
+              地図の読み方
             </p>
-            <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
-              {approvedPlaces.length}
-            </p>
-            <p className="mt-2 text-sm text-[var(--page-muted)]">
-              公開前に管理者確認を通った勤務先だけを掲載しています。
-            </p>
-          </div>
-          <div className="glass-panel rounded-[24px] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-              おすすめの読み順
-            </p>
-            <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
-              1. 辞め方を整理
-              <br />
-              2. 危ない求人の見分け方
-              <br />
-              3. 次の候補を比較
-            </p>
+            <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
+              {mapReadingNotes.map((note) => (
+                <p key={note}>・{note}</p>
+              ))}
+            </div>
           </div>
           <div className="glass-panel rounded-[28px] p-5">
-            <p className="text-sm font-semibold text-[var(--page-ink)]">
-              使い方の前提
-            </p>
+            <p className="text-sm font-semibold text-[var(--page-ink)]">使い方の前提</p>
             <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
               掲載情報は主観レビューです。事実の断定ではなく、働いた人の体験傾向を読むために使ってください。
             </p>
@@ -285,26 +371,42 @@ export default async function HomePage() {
       </section>
 
       <section
-        className="mt-6 grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]"
+        className="mt-6 hidden gap-4 lg:grid lg:grid-cols-[340px_minmax(0,1fr)]"
         style={{ minHeight: "calc(100vh - 92px)" }}
       >
         <aside className="section-frame flex flex-col gap-6 p-6 sm:p-7">
           <div>
-            <span className="eyebrow">管理者確認済みマップ</span>
+            <span className="eyebrow">掲載地図</span>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">
-              地図から勤務先を深掘りする。
+              承認済みの勤務先だけを、地図で確認する。
             </h2>
             <p className="mt-4 text-sm leading-7 text-[var(--page-muted)]">
-              管理者確認を通った勤務先だけを地図に載せています。問題のある職場を避けたいときは、ガイドで基準を見てから地図を読むと比較しやすくなります。
+              管理者確認を通った勤務先だけを地図に載せています。主観レビューを読んで比較したいときは、一覧と勤務先詳細を行き来しながら確認するのが最短です。
             </p>
           </div>
 
-          <div className="glass-panel rounded-[28px] p-5">
+          <div className="notice-strip">
+            <span className="notice-strip__label">表示基準</span>
+            <p className="text-sm leading-6 text-[var(--page-ink)]">
+              掲載は主観レビューです。問題がある場合は削除申請フォームと当事者コメントフォームを利用できます。
+            </p>
+          </div>
+
+          <div className="glass-panel rounded-[22px] p-5">
             <p className="text-sm font-semibold text-[var(--page-ink)]">読む順番のおすすめ</p>
             <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
               <p>・悩みが強いなら先にガイドを読む</p>
               <p>・候補を比べたいなら地図と一覧へ進む</p>
-              <p>・問題があるときは削除申請フォームや通報フォームを使う</p>
+              <p>・問題があるときは各窓口から連絡する</p>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-[22px] p-5">
+            <p className="text-sm font-semibold text-[var(--page-ink)]">地図を読むときの確認点</p>
+            <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
+              {mapReadingNotes.map((note) => (
+                <p key={note}>・{note}</p>
+              ))}
             </div>
           </div>
 
@@ -319,12 +421,15 @@ export default async function HomePage() {
         </aside>
 
         <section className="section-frame map-frame flex min-h-[540px] flex-col p-3 sm:p-4">
-          <div className="glass-panel mb-3 flex flex-wrap items-center justify-between gap-3 rounded-[24px] px-4 py-3 text-sm text-[var(--page-muted)]">
+          <div className="glass-panel mb-3 flex flex-wrap items-center justify-between gap-3 rounded-[18px] px-4 py-3 text-sm text-[var(--page-muted)]">
             <div>
-              <p className="font-semibold text-[var(--page-ink)]">地図から勤務先を探す</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--page-muted)]">
+                掲載状況
+              </p>
+              <p className="mt-1 font-semibold text-[var(--page-ink)]">地図から勤務先を探す</p>
               <p className="text-xs sm:text-sm">
                 {approvedPlaces.length > 0
-                  ? "ピンを開くと詳細ページへ移動できます。まずガイドで基準を見てから読むと比較しやすいです。"
+                  ? "ピンを開くと詳細ページへ移動できます。必要なら一覧ページで並べて比較できます。"
                   : "まだ地図に表示できる勤務先がありません。最初の勤務先と体験談が公開されると、ここにピンが出ます。"}
               </p>
             </div>
@@ -335,11 +440,20 @@ export default async function HomePage() {
 
           <div className="relative flex-1 overflow-hidden rounded-[28px]">
             <Map places={approvedPlaces} />
-            <div className="pointer-events-none absolute inset-x-4 top-4 z-10">
-              <div className="glass-panel inline-flex max-w-xl rounded-full px-4 py-2 text-xs text-[var(--page-muted)]">
-                {approvedPlaces.length > 0
-                  ? "主観レビューを地図で可視化しています。掲載・削除・当事者コメントはすべて管理者確認後に反映されます。"
-                  : "公開済みの勤務先はまだありません。最初の勤務先と体験談の投稿を受け付けています。"}
+            <div className="pointer-events-none absolute left-4 top-4 z-10">
+              <div className="glass-panel inline-flex items-center gap-2 rounded-[16px] px-3 py-2 text-xs text-[var(--page-muted)]">
+                <span className="inline-flex h-3 w-3 rounded-full bg-[var(--marker-fill)] ring-2 ring-[#fff2b0]" />
+                {approvedPlaces.length > 0 ? "承認済みの勤務先を表示中" : "公開待ちのため表示なし"}
+              </div>
+            </div>
+            <div className="pointer-events-none absolute inset-x-4 top-20 z-10">
+              <div className="notice-strip inline-flex max-w-2xl">
+                <span className="notice-strip__label">補足</span>
+                <p className="text-xs leading-6 text-[var(--page-ink)]">
+                  {approvedPlaces.length > 0
+                    ? "掲載・削除・当事者コメントはすべて管理者確認後に反映されます。"
+                    : "公開済みの勤務先はまだありません。最初の勤務先と体験談の投稿を受け付けています。"}
+                </p>
               </div>
             </div>
             <div className="absolute bottom-5 left-5 z-10">

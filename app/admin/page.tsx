@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
 
-async function getCount(table: string, status: string) {
-  const supabase = createAdminClient();
+async function getCount(supabase: ReturnType<typeof createAdminClient>, table: string, status: string) {
   const { count } = await supabase
     .from(table)
     .select("*", { count: "exact", head: true })
@@ -11,12 +10,13 @@ async function getCount(table: string, status: string) {
 }
 
 export default async function AdminDashboard() {
+  const supabase = createAdminClient();
   const [pendingReviews, pendingPlaces, pendingOfficialResponses, openReports, openTakedowns] = await Promise.all([
-    getCount("reviews", "pending"),
-    getCount("places", "pending"),
-    getCount("official_responses", "pending"),
-    getCount("reports", "received"),
-    getCount("takedown_requests", "received"),
+    getCount(supabase, "reviews", "pending"),
+    getCount(supabase, "places", "pending"),
+    getCount(supabase, "official_responses", "pending"),
+    getCount(supabase, "reports", "received"),
+    getCount(supabase, "takedown_requests", "received"),
   ]);
 
   const cards = [

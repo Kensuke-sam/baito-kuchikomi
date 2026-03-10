@@ -15,14 +15,14 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/60 bg-[rgba(247,251,248,0.78)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[var(--line-strong)] bg-[rgba(248,243,223,0.92)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-lg text-white shadow-[0_14px_30px_rgba(37,99,235,0.24)]">
-            📋
+          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-[rgba(30,26,16,0.18)] bg-[linear-gradient(180deg,#4b8b42,#2d6428)] text-sm font-black tracking-[0.18em] text-[#fff2b0] shadow-[0_12px_24px_rgba(45,100,40,0.18)]">
+            録
           </span>
           <span>
-            <span className="eyebrow bg-[rgba(15,23,42,0.06)] px-2.5 py-1 text-[0.62rem]">
+            <span className="eyebrow bg-[rgba(33,31,24,0.94)] px-2.5 py-1 text-[0.62rem] text-[#fff2b0]">
               バイト体験談
             </span>
             <span className="mt-1 block text-sm font-semibold tracking-[-0.03em] text-[var(--page-ink)] sm:text-base">
@@ -53,7 +53,7 @@ export function Header() {
         {/* Mobile hamburger */}
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--line)] bg-white/72 md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-[var(--line-strong)] bg-[rgba(255,252,243,0.92)] md:hidden"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? "メニューを閉じる" : "メニューを開く"}
           aria-expanded={menuOpen}
@@ -74,7 +74,7 @@ export function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <nav
-          className="border-t border-[var(--line)] bg-[rgba(247,251,248,0.95)] px-4 pb-4 pt-3 backdrop-blur-xl md:hidden"
+          className="border-t border-[var(--line)] bg-[rgba(248,243,223,0.96)] px-4 pb-4 pt-3 backdrop-blur-xl md:hidden"
           aria-label="モバイルナビゲーション"
         >
           <div className="grid gap-2">
@@ -82,7 +82,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-[18px] border border-[var(--line)] bg-white/74 px-4 py-3 text-sm font-medium text-[var(--page-ink)] transition hover:border-[rgba(37,99,235,0.18)]"
+                className="rounded-[14px] border border-[var(--line)] bg-[rgba(255,252,243,0.92)] px-4 py-3 text-sm font-medium text-[var(--page-ink)] transition hover:border-[rgba(75,139,66,0.28)]"
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}

@@ -25,7 +25,7 @@ export default async function AdminReviewsPage() {
         <p className="text-gray-500">対象の体験談はありません。</p>
       ) : (
         <div className="space-y-4">
-          {(reviews as (Review & { places: { name: string; address: string } | null })[]).map((review) => (
+          {(reviews as (Review & { admin_notes?: string; places: { name: string; address: string } | null })[]).map((review) => (
             <div key={review.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
@@ -51,6 +51,12 @@ export default async function AdminReviewsPage() {
               )}
 
               <p className="text-sm text-gray-700 whitespace-pre-line mb-4">{review.body}</p>
+
+              {review.admin_notes && (
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+                  📝 管理者メモ: {review.admin_notes}
+                </div>
+              )}
 
               {noteMap.get(review.id) && (
                 <div className="mb-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900">

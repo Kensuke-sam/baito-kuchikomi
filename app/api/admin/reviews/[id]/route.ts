@@ -47,17 +47,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "対象の体験談が見つかりません。" }, { status: 404 });
   }
 
+  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
+
   const { error } = await supabase
     .from("reviews")
-    .update({ status: parsed.data.status })
+    .update({ status: parsed.data.status, admin_notes: adminNotes })
     .eq("id", id);
 
   if (error) {
     console.error("review update failed", error);
     return NextResponse.json({ error: "体験談の更新に失敗しました。" }, { status: 500 });
   }
-
-  const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
 
   // 監査ログ
   const { error: auditError } = await supabase.from("audit_logs").insert({

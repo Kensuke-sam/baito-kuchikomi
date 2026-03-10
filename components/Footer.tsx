@@ -22,12 +22,12 @@ const safetyLinks = [
 
 export function Footer() {
   return (
-    <footer className="mt-10 border-t border-white/60 bg-[rgba(247,251,248,0.72)] backdrop-blur-xl">
+    <footer className="mt-10 border-t border-[var(--line-strong)] bg-[rgba(248,243,223,0.88)] backdrop-blur-xl">
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto]">
           {/* ブランド・説明 */}
           <div className="max-w-md">
-            <span className="eyebrow bg-[rgba(15,23,42,0.06)] px-2.5 py-1 text-[0.62rem]">
+            <span className="eyebrow bg-[rgba(33,31,24,0.94)] px-2.5 py-1 text-[0.62rem] text-[#fff2b0]">
               バイト体験談マップ
             </span>
             <h2 className="mt-4 text-lg font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
