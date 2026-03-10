@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { href: "/guides", label: "ガイド" },
@@ -11,15 +12,90 @@ const navLinks = [
   { href: "/list", label: "口コミ一覧" },
 ] as const;
 
+type AdminAccess = {
+  isAdmin: true;
+  role: "admin" | "super_admin";
+  canManageAdmins: boolean;
+};
+
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [adminAccess, setAdminAccess] = useState<AdminAccess | null>(null);
+  const pathname = usePathname();
+  const isAdminPage = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadAdminAccess() {
+      try {
+        const response = await fetch("/api/admin/access", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          setAdminAccess(null);
+          return;
+        }
+
+        const data = await response.json();
+        if (data?.isAdmin) {
+          setAdminAccess({
+            isAdmin: true,
+            role: data.role,
+            canManageAdmins: Boolean(data.canManageAdmins),
+          });
+          return;
+        }
+
+        setAdminAccess(null);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setAdminAccess(null);
+        }
+      }
+    }
+
+    loadAdminAccess();
+    return () => controller.abort();
+  }, []);
+
+  const adminLink = adminAccess ? (
+    <Link
+      href="/admin/admins"
+      className={`inline-flex items-center gap-2 rounded-[16px] border px-4 py-2 text-xs font-semibold transition ${
+        isAdminPage
+          ? "border-[rgba(45,100,40,0.4)] bg-[linear-gradient(180deg,#6ead63,#2d6428)] text-[#fff7cf] shadow-[0_12px_24px_rgba(45,100,40,0.22)]"
+          : "border-[rgba(45,100,40,0.24)] bg-[linear-gradient(180deg,#4f9648,#2d6428)] text-[#fff7cf] shadow-[0_12px_24px_rgba(45,100,40,0.18)] hover:-translate-y-[1px]"
+      }`}
+    >
+      <span className="rounded-full bg-[rgba(255,247,207,0.16)] px-2 py-0.5 text-[10px] tracking-[0.14em] text-[#fff3b3]">
+        ADMIN ONLY
+      </span>
+      <span>管理者権限</span>
+    </Link>
+  ) : null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--line-strong)] bg-[rgba(248,243,223,0.92)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-[rgba(30,26,16,0.18)] bg-[linear-gradient(180deg,#4b8b42,#2d6428)] text-sm font-black tracking-[0.18em] text-[#fff2b0] shadow-[0_12px_24px_rgba(45,100,40,0.18)]">
-            録
+          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-[rgba(30,26,16,0.18)] bg-[linear-gradient(180deg,#4b8b42,#2d6428)] text-[#fff2b0] shadow-[0_12px_24px_rgba(45,100,40,0.18)]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-[1.375rem] w-[1.375rem] translate-y-[-1px]"
+            >
+              <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+              <path d="M9 8h6" />
+              <path d="M9 12h4" />
+            </svg>
           </span>
           <span>
             <span className="eyebrow bg-[rgba(33,31,24,0.94)] px-2.5 py-1 text-[0.62rem] text-[#fff2b0]">
@@ -48,6 +124,7 @@ export function Header() {
           >
             体験談を投稿
           </Link>
+          {adminLink}
         </nav>
 
         {/* Mobile hamburger */}
@@ -95,6 +172,18 @@ export function Header() {
             >
               体験談を投稿
             </Link>
+            {adminAccess && (
+              <Link
+                href="/admin/admins"
+                className="mt-1 rounded-[16px] border border-[rgba(45,100,40,0.24)] bg-[linear-gradient(180deg,#4f9648,#2d6428)] px-4 py-3 text-sm font-semibold text-[#fff7cf] shadow-[0_12px_24px_rgba(45,100,40,0.18)]"
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="mr-2 rounded-full bg-[rgba(255,247,207,0.16)] px-2 py-0.5 text-[10px] tracking-[0.14em] text-[#fff3b3]">
+                  ADMIN ONLY
+                </span>
+                管理者権限
+              </Link>
+            )}
           </div>
         </nav>
       )}

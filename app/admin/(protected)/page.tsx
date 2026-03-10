@@ -9,14 +9,22 @@ async function getCount(supabase: ReturnType<typeof createAdminClient>, table: s
   return count ?? 0;
 }
 
+async function getTotalCount(supabase: ReturnType<typeof createAdminClient>, table: string) {
+  const { count } = await supabase
+    .from(table)
+    .select("*", { count: "exact", head: true });
+  return count ?? 0;
+}
+
 export default async function AdminDashboard() {
   const supabase = createAdminClient();
-  const [pendingReviews, pendingPlaces, pendingOfficialResponses, openReports, openTakedowns] = await Promise.all([
+  const [pendingReviews, pendingPlaces, pendingOfficialResponses, openReports, openTakedowns, totalAdmins] = await Promise.all([
     getCount(supabase, "reviews", "pending"),
     getCount(supabase, "places", "pending"),
     getCount(supabase, "official_responses", "pending"),
     getCount(supabase, "reports", "received"),
     getCount(supabase, "takedown_requests", "received"),
+    getTotalCount(supabase, "admins"),
   ]);
 
   const cards = [
@@ -25,6 +33,7 @@ export default async function AdminDashboard() {
     { label: "承認待ち当事者コメント", count: pendingOfficialResponses, href: "/admin/official-responses", color: "bg-indigo-50 border-indigo-200" },
     { label: "未対応の通報",    count: openReports,     href: "/admin/reports",   color: "bg-orange-50 border-orange-200" },
     { label: "未対応の削除申請", count: openTakedowns,  href: "/admin/takedowns", color: "bg-red-50 border-red-200" },
+    { label: "管理者権限", count: totalAdmins, href: "/admin/admins", color: "bg-slate-50 border-slate-200" },
   ];
 
   return (

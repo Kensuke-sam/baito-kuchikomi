@@ -427,12 +427,15 @@ export default async function HomePage() {
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 職種から探す
               </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--page-muted)]">
+                職種ごとのきつさや向き不向きを比較
+              </p>
             </div>
             <Link href="/jobs" className="secondary-button text-sm">
               すべて
             </Link>
           </div>
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 space-y-3">
             {featuredJobs.map((job) => (
               <HubCard key={job.slug} hub={job} />
             ))}
@@ -446,12 +449,15 @@ export default async function HomePage() {
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 地域から探す
               </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--page-muted)]">
+                エリア別の安全な探し方を整理
+              </p>
             </div>
             <Link href="/areas" className="secondary-button text-sm">
               すべて
             </Link>
           </div>
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 space-y-3">
             {featuredAreas.map((area) => (
               <HubCard key={area.slug} hub={area} />
             ))}
@@ -465,12 +471,15 @@ export default async function HomePage() {
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 単発・求人サービス比較
               </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--page-muted)]">
+                アプリごとの使い方と注意点を比較
+              </p>
             </div>
             <Link href="/apps" className="secondary-button text-sm">
               すべて
             </Link>
           </div>
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 space-y-3">
             {featuredApps.map((app) => (
               <HubCard key={app.slug} hub={app} />
             ))}

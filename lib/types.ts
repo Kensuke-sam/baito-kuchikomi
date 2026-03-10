@@ -1,6 +1,7 @@
 export type ContentStatus = "pending" | "approved" | "rejected" | "removed" | "needs_revision";
 export type RequestStatus = "received" | "investigating" | "resolved";
 export type TargetType = "place" | "review";
+export type AdminRole = "admin" | "super_admin";
 
 export interface Place {
   id: string;
@@ -61,6 +62,13 @@ export interface TakedownRequest {
   admin_notes?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface AdminMember {
+  user_id: string;
+  email: string | null;
+  role: AdminRole;
+  created_at: string;
 }
 
 // フォーム入力用
