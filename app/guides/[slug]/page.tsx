@@ -235,7 +235,7 @@ export default async function GuideDetailPage({ params }: Props) {
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <span className="eyebrow">Next Reading</span>
+            <span className="eyebrow">次に読む</span>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
               関連ガイド
             </h2>
@@ -255,7 +255,7 @@ export default async function GuideDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Job Type Hubs</span>
+              <span className="eyebrow">職種ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 職種から比較
               </h2>
@@ -274,7 +274,7 @@ export default async function GuideDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Area Hubs</span>
+              <span className="eyebrow">地域ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 地域から比較
               </h2>
@@ -293,7 +293,7 @@ export default async function GuideDetailPage({ params }: Props) {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Apps & Services</span>
+              <span className="eyebrow">アプリ・サービス</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 サービス比較
               </h2>

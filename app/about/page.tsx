@@ -30,7 +30,7 @@ export default function AboutPage() {
   return (
     <main className="app-shell mx-auto max-w-4xl px-4 py-8 sm:py-10">
       <section className="section-frame p-6 sm:p-8">
-        <span className="eyebrow">About This Service</span>
+        <span className="eyebrow">このサイトについて</span>
         <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">
           サイトについて
         </h1>

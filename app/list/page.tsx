@@ -1,13 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HubCard } from "@/components/HubCard";
 import { createClient } from "@/lib/supabase/server";
 import { GuideCard } from "@/components/GuideCard";
 import { GuideCta } from "@/components/GuideCta";
+import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { ReviewCard } from "@/components/ReviewCard";
 import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import type { Place, Review } from "@/lib/types";
 import { REVIEW_TAGS } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "体験談一覧",
+  description: "勤務先名・住所・タグで承認済みのバイト体験談を横断検索できる一覧ページです。",
+};
 
 const PER_PAGE = 20;
 
@@ -82,6 +89,7 @@ export default async function ListPage({ searchParams }: Props) {
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const displayStart = totalCount === 0 ? 0 : offset + 1;
   const displayEnd = totalCount === 0 ? 0 : Math.min(offset + PER_PAGE, totalCount);
+  const isLaunchEmptyState = totalCount === 0 && !query && !tagFilter;
   const featuredGuides = getFeaturedGuides();
   const featuredJobs = getJobHubs().slice(0, 3);
   const featuredAreas = getAreaHubs().slice(0, 3);
@@ -105,7 +113,7 @@ export default async function ListPage({ searchParams }: Props) {
       <section className="section-frame p-5 sm:p-7">
         <div className="flex flex-col gap-5 border-b border-[var(--line)] pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <span className="eyebrow">Search Stories</span>
+            <span className="eyebrow">体験談を探す</span>
             <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
               体験談一覧
             </h1>
@@ -124,7 +132,7 @@ export default async function ListPage({ searchParams }: Props) {
 
         <div className="mt-6">
           <GuideCta
-            eyebrow="Search With Context"
+            eyebrow="読む前の基準"
             title="口コミの前に、危ない求人の見分け方も持っておく"
             description="一覧は便利ですが、読み方の基準がないと判断しにくくなります。先にガイドを1本読むと、口コミから拾うポイントがはっきりします。"
             trackingContext="list:search-context"
@@ -181,17 +189,65 @@ export default async function ListPage({ searchParams }: Props) {
         </div>
 
         {(reviews ?? []).length === 0 ? (
-          <div className="glass-panel mt-6 rounded-[28px] px-6 py-14 text-center text-[var(--page-muted)]">
-            <p>{query || tagFilter ? "条件に一致する投稿が見つかりません。" : "まだ投稿がありません。"}</p>
-            <p className="mt-3 text-sm leading-7">
-              先に悩み別ガイドを見ると、次にどんな勤務先を探すべきか整理しやすくなります。
-            </p>
-            <div className="mt-6 grid gap-4 text-left lg:grid-cols-3">
-              {featuredGuides.map((guide) => (
-                <GuideCard key={guide.slug} guide={guide} />
-              ))}
+          isLaunchEmptyState ? (
+            <div className="mt-6 space-y-6">
+              <FirstReviewCallout
+                eyebrow="最初の体験談募集"
+                title="この一覧はまだ空です。だから今は、最初の投稿を集める面に変えます。"
+                description="投稿が0件のままでは、口コミ一覧が比較材料として機能しません。偽の口コミで埋めず、公開0件であることを明示したうえで、最初の実体験を安心して送れる導線を前面に出します。"
+                highlights={[
+                  {
+                    title: "匿名で投稿できる",
+                    body: "公開ページには個人情報を出さず、内容は主観レビューとして掲載します。",
+                  },
+                  {
+                    title: "勤務先登録までこの画面で完了",
+                    body: "まだ載っていない勤務先でも、そのまま住所確認から投稿まで進められます。",
+                  },
+                  {
+                    title: "短くても具体例が効く",
+                    body: "シフト、給与、人間関係、研修、辞めやすさのどれか1つでも次の人の役に立ちます。",
+                  },
+                ]}
+                primaryHref="/submit"
+                primaryLabel="最初の体験談を投稿する"
+                secondaryHref="/guidelines"
+                secondaryLabel="投稿ガイドライン"
+                footnote="立ち上げ期は、一覧そのものより『安心して最初の1件を投稿できるか』のほうが重要です。"
+              />
+
+              <section className="section-frame p-6 sm:p-7">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <span className="eyebrow">先に読む</span>
+                    <h2 className="mt-3 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+                      先に読むと、どんな体験談を書くべきか整理しやすい記事
+                    </h2>
+                  </div>
+                  <Link href="/guides" className="secondary-button text-sm">
+                    ガイド一覧へ
+                  </Link>
+                </div>
+                <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                  {featuredGuides.map((guide) => (
+                    <GuideCard key={guide.slug} guide={guide} />
+                  ))}
+                </div>
+              </section>
             </div>
-          </div>
+          ) : (
+            <div className="glass-panel mt-6 rounded-[28px] px-6 py-14 text-center text-[var(--page-muted)]">
+              <p>条件に一致する投稿が見つかりません。</p>
+              <p className="mt-3 text-sm leading-7">
+                キーワードを広げるか、タグを外して探し直してください。先に悩み別ガイドを見ると、どんな観点で探すか整理しやすくなります。
+              </p>
+              <div className="mt-6 grid gap-4 text-left lg:grid-cols-3">
+                {featuredGuides.map((guide) => (
+                  <GuideCard key={guide.slug} guide={guide} />
+                ))}
+              </div>
+            </div>
+          )
         ) : (
           <div className="mt-6 space-y-4">
             {(reviews as Review[]).map((review) => {
@@ -217,7 +273,7 @@ export default async function ListPage({ searchParams }: Props) {
           <section className="mt-8">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <span className="eyebrow">Related Guides</span>
+                <span className="eyebrow">関連ガイド</span>
                 <h2 className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
                   読みながら次の動きも決める
                 </h2>
@@ -238,7 +294,7 @@ export default async function ListPage({ searchParams }: Props) {
           <section className="section-frame p-6 sm:p-7">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <span className="eyebrow">Job Type Hubs</span>
+                <span className="eyebrow">職種ハブ</span>
                 <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                   職種から絞る
                 </h2>
@@ -257,7 +313,7 @@ export default async function ListPage({ searchParams }: Props) {
           <section className="section-frame p-6 sm:p-7">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <span className="eyebrow">Area Hubs</span>
+                <span className="eyebrow">地域ハブ</span>
                 <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                   地域から絞る
                 </h2>
@@ -276,7 +332,7 @@ export default async function ListPage({ searchParams }: Props) {
           <section className="section-frame p-6 sm:p-7">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <span className="eyebrow">Apps & Services</span>
+                <span className="eyebrow">アプリ・サービス</span>
                 <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                   サービス比較
                 </h2>

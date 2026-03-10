@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Place } from "@/lib/types";
+import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { GuideCard } from "@/components/GuideCard";
 import { HubCard } from "@/components/HubCard";
 import Map from "@/components/Map";
@@ -9,12 +10,17 @@ import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: places } = await supabase
-    .from("places")
-    .select("*")
-    .eq("status", "approved");
+  const [{ data: places }, { count: approvedReviewCount }] = await Promise.all([
+    supabase.from("places").select("*").eq("status", "approved"),
+    supabase
+      .from("reviews")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "approved"),
+  ]);
 
   const approvedPlaces: Place[] = places ?? [];
+  const approvedReviews = approvedReviewCount ?? 0;
+  const isZeroReviewLaunch = approvedReviews === 0;
   const featuredGuides = getFeaturedGuides();
   const featuredJobs = getJobHubs().slice(0, 3);
   const featuredAreas = getAreaHubs().slice(0, 3);
@@ -47,13 +53,18 @@ export default async function HomePage() {
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_360px]">
         <section className="section-frame p-6 sm:p-8">
           <div>
-            <span className="eyebrow">Escape Routes For Part-Time Jobs</span>
+            <span className="eyebrow">悩み別ルート</span>
             <h1 className="mt-4 max-w-4xl text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-5xl">
               辞めたい気持ちから、次のバイト探しまで。
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[var(--page-muted)] sm:text-base">
               ブラックバイトを避けたい、きつい職場から離れたい、大学生活と両立できる仕事に替えたい。そんな悩みを解決記事と口コミの両方から探せるようにしました。
             </p>
+            {isZeroReviewLaunch && (
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--accent)]">
+                いまは公開済みの体験談が 0 件です。立ち上げ期なので、ガイドを先に置きつつ最初の体験談を募集しています。
+              </p>
+            )}
           </div>
 
           <div className="mt-8 grid gap-3 md:grid-cols-2">
@@ -71,14 +82,14 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/guides" className="primary-button text-sm">
-              悩み別ガイドを見る
+            <Link href={isZeroReviewLaunch ? "/submit" : "/guides"} className="primary-button text-sm">
+              {isZeroReviewLaunch ? "最初の体験談を投稿する" : "悩み別ガイドを見る"}
             </Link>
-            <Link href="/list" className="secondary-button text-sm">
-              口コミ一覧を見る
+            <Link href={isZeroReviewLaunch ? "/guides" : "/list"} className="secondary-button text-sm">
+              {isZeroReviewLaunch ? "悩み別ガイドを見る" : "口コミ一覧を見る"}
             </Link>
             <Link href="/submit" className="secondary-button text-sm">
-              体験談を投稿
+              {isZeroReviewLaunch ? "勤務先と体験談を投稿" : "体験談を投稿"}
             </Link>
           </div>
         </section>
@@ -86,7 +97,20 @@ export default async function HomePage() {
         <aside className="section-frame flex flex-col gap-4 p-6 sm:p-7">
           <div className="glass-panel rounded-[24px] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-              Approved Places
+              公開済みの体験談
+            </p>
+            <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+              {approvedReviews}
+            </p>
+            <p className="mt-2 text-sm text-[var(--page-muted)]">
+              {isZeroReviewLaunch
+                ? "口コミサイトとしては立ち上げ直後の状態です。最初の1件を募集しています。"
+                : "公開済みの体験談だけを一覧と勤務先ページに反映しています。"}
+            </p>
+          </div>
+          <div className="glass-panel rounded-[24px] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
+              掲載済みの勤務先
             </p>
             <p className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
               {approvedPlaces.length}
@@ -97,7 +121,7 @@ export default async function HomePage() {
           </div>
           <div className="glass-panel rounded-[24px] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-              Reading Order
+              おすすめの読み順
             </p>
             <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
               1. 辞め方を整理
@@ -126,11 +150,40 @@ export default async function HomePage() {
         </aside>
       </section>
 
+      {isZeroReviewLaunch && (
+        <section className="mt-6">
+          <FirstReviewCallout
+            eyebrow="最初の体験談募集"
+            title="公開済みの体験談はまだありません。だから隠さず、最初の投稿を取りに行きます。"
+            description="口コミが0件のままでは、一覧や勤務先ページが信頼補強になりません。立ち上げ期はガイドを主役にしつつ、最初の投稿者が安心して送れる状態を前面に出すほうが自然です。"
+            highlights={[
+              {
+                title: "匿名で送信",
+                body: "公開ページには個人情報を出さず、投稿は主観レビューとして扱います。",
+              },
+              {
+                title: "勤務先登録も同時に完了",
+                body: "勤務先が未登録でも、そのまま住所確認から投稿までまとめて進められます。",
+              },
+              {
+                title: "細かい暴露より具体例",
+                body: "シフト、人間関係、研修、辞めやすさだけでも次の人の判断材料になります。",
+              },
+            ]}
+            primaryHref="/submit"
+            primaryLabel="最初の体験談を投稿する"
+            secondaryHref="/guidelines"
+            secondaryLabel="投稿ガイドライン"
+            footnote="偽の口コミを置くのではなく、公開0件であることを明示したうえで、最初の実体験を集めに行く方針です。"
+          />
+        </section>
+      )}
+
       <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="section-frame p-6 sm:p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <span className="eyebrow">Start Here</span>
+              <span className="eyebrow">まずはここから</span>
               <h2 className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-3xl">
                 最初に読むべき3本
               </h2>
@@ -151,7 +204,7 @@ export default async function HomePage() {
         </section>
 
         <aside className="section-frame p-6 sm:p-7">
-          <span className="eyebrow">Moderation Flow</span>
+          <span className="eyebrow">安全運用の導線</span>
           <h2 className="mt-4 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
             安全寄りに読むための導線
           </h2>
@@ -176,7 +229,7 @@ export default async function HomePage() {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Job Type Hubs</span>
+              <span className="eyebrow">職種ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 職種から探す
               </h2>
@@ -195,7 +248,7 @@ export default async function HomePage() {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Area Hubs</span>
+              <span className="eyebrow">地域ハブ</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 地域から探す
               </h2>
@@ -214,7 +267,7 @@ export default async function HomePage() {
         <section className="section-frame p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <span className="eyebrow">Apps & Services</span>
+              <span className="eyebrow">アプリ・サービス</span>
               <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                 単発・求人サービス比較
               </h2>
@@ -237,7 +290,7 @@ export default async function HomePage() {
       >
         <aside className="section-frame flex flex-col gap-6 p-6 sm:p-7">
           <div>
-            <span className="eyebrow">Moderated Map</span>
+            <span className="eyebrow">管理者確認済みマップ</span>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">
               地図から勤務先を深掘りする。
             </h2>
@@ -269,10 +322,14 @@ export default async function HomePage() {
           <div className="glass-panel mb-3 flex flex-wrap items-center justify-between gap-3 rounded-[24px] px-4 py-3 text-sm text-[var(--page-muted)]">
             <div>
               <p className="font-semibold text-[var(--page-ink)]">地図から勤務先を探す</p>
-              <p className="text-xs sm:text-sm">ピンを開くと詳細ページへ移動できます。まずガイドで基準を見てから読むと比較しやすいです。</p>
+              <p className="text-xs sm:text-sm">
+                {approvedPlaces.length > 0
+                  ? "ピンを開くと詳細ページへ移動できます。まずガイドで基準を見てから読むと比較しやすいです。"
+                  : "まだ地図に表示できる勤務先がありません。最初の勤務先と体験談が公開されると、ここにピンが出ます。"}
+              </p>
             </div>
             <div className="soft-pill">
-              掲載勤務先 {approvedPlaces.length} 件
+              {approvedPlaces.length > 0 ? `掲載勤務先 ${approvedPlaces.length} 件` : "立ち上げ中"}
             </div>
           </div>
 
@@ -280,12 +337,14 @@ export default async function HomePage() {
             <Map places={approvedPlaces} />
             <div className="pointer-events-none absolute inset-x-4 top-4 z-10">
               <div className="glass-panel inline-flex max-w-xl rounded-full px-4 py-2 text-xs text-[var(--page-muted)]">
-                主観レビューを地図で可視化しています。掲載・削除・当事者コメントはすべて管理者確認後に反映されます。
+                {approvedPlaces.length > 0
+                  ? "主観レビューを地図で可視化しています。掲載・削除・当事者コメントはすべて管理者確認後に反映されます。"
+                  : "公開済みの勤務先がまだ0件のため、いまはガイドと投稿導線を優先しています。"}
               </div>
             </div>
             <div className="absolute bottom-5 left-5 z-10">
-              <Link href="/list" className="primary-button px-4 py-3 text-sm">
-                一覧で深掘りする
+              <Link href={approvedPlaces.length > 0 ? "/list" : "/submit"} className="primary-button px-4 py-3 text-sm">
+                {approvedPlaces.length > 0 ? "一覧で深掘りする" : "勤務先と体験談を投稿する"}
               </Link>
             </div>
           </div>

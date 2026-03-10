@@ -46,81 +46,114 @@ function ReportPageInner() {
 
   if (success) {
     return (
-      <main className="max-w-md mx-auto px-4 py-12 text-center">
-        <div className="text-4xl mb-4">✅</div>
-        <h1 className="text-xl font-bold mb-2">通報を受け付けました</h1>
-        <p className="text-sm text-gray-600 mb-4">管理者が確認します。</p>
-        <Link href="/" className="text-blue-600 hover:underline text-sm">トップへ戻る</Link>
+      <main className="app-shell mx-auto max-w-3xl px-4 py-10 sm:py-14">
+        <section className="section-frame p-8 text-center sm:p-12">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f172a,#2563eb)] text-3xl text-white shadow-[0_18px_40px_rgba(37,99,235,0.24)]">
+            ✓
+          </div>
+          <p className="mt-6">
+            <span className="eyebrow">受付完了</span>
+          </p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+            通報を受け付けました
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--page-muted)]">
+            管理者が内容を確認し、対応します。
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/" className="primary-button text-sm">
+              トップへ戻る
+            </Link>
+            <Link href="/list" className="secondary-button text-sm">
+              一覧を見る
+            </Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   if (!targetType || !targetId) {
     return (
-      <main className="max-w-md mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">通報フォーム</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          通報は勤務先ページまたは口コミカードの「通報する」から対象を指定して送信してください。
-        </p>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900 space-y-2">
-          <p className="font-semibold">対象が未指定です</p>
-          <p>先に口コミ一覧や勤務先詳細を開き、対象コンテンツから通報フォームへ進んでください。</p>
-        </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/list" className="text-blue-600 hover:underline text-sm">口コミ一覧へ</Link>
-          <Link href="/takedown" className="text-blue-600 hover:underline text-sm">削除申請はこちら</Link>
-        </div>
+      <main className="app-shell mx-auto max-w-3xl px-4 py-8 sm:py-10">
+        <section className="section-frame p-6 sm:p-8">
+          <span className="eyebrow">通報</span>
+          <h1 className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+            通報フォーム
+          </h1>
+          <p className="mt-3 text-sm leading-7 text-[var(--page-muted)]">
+            通報は勤務先ページまたは口コミカードの「通報する」から対象を指定して送信してください。
+          </p>
+          <div className="glass-panel mt-6 rounded-[24px] p-5">
+            <p className="text-sm font-semibold text-[var(--page-ink)]">対象が未指定です</p>
+            <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+              先に口コミ一覧や勤務先詳細を開き、対象コンテンツから通報フォームへ進んでください。
+            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/list" className="primary-button text-sm">口コミ一覧へ</Link>
+            <Link href="/takedown" className="secondary-button text-sm">削除申請はこちら</Link>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="max-w-md mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-900 mb-6">通報フォーム</h1>
+    <main className="app-shell mx-auto max-w-3xl px-4 py-8 sm:py-10">
+      <section className="section-frame p-6 sm:p-8">
+        <span className="eyebrow">通報</span>
+        <h1 className="mt-4 text-2xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
+          通報フォーム
+        </h1>
+        <p className="mt-3 text-sm leading-7 text-[var(--page-muted)]">
+          掲載内容に問題がある場合はこちらから通報できます。
+        </p>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="mt-5 rounded-[24px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">通報理由 *</label>
-          <select
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">通報理由 *</label>
+            <select
+              className="field-input text-sm text-[var(--page-ink)]"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            >
+              {REPORT_REASONS.map((r) => <option key={r}>{r}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[var(--page-ink)]">詳細（任意）</label>
+            <textarea
+              className="field-textarea text-sm leading-7 text-[var(--page-ink)]"
+              rows={3}
+              value={detail}
+              onChange={(e) => setDetail(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="primary-button w-full text-sm disabled:opacity-60"
           >
-            {REPORT_REASONS.map((r) => <option key={r}>{r}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">詳細（任意）</label>
-          <textarea
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-            rows={3}
-            value={detail}
-            onChange={(e) => setDetail(e.target.value)}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-gray-800 hover:bg-gray-900 disabled:opacity-50 text-white font-medium py-2.5 rounded-md text-sm"
-        >
-          {submitting ? "送信中…" : "通報する"}
-        </button>
-      </form>
+            {submitting ? "送信中…" : "通報する"}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }
 
 export default function ReportPage() {
   return (
-    <Suspense fallback={<main className="max-w-md mx-auto px-4 py-8 text-sm text-gray-500">読み込み中…</main>}>
+    <Suspense fallback={<main className="mx-auto max-w-3xl px-4 py-8 text-sm text-[var(--page-muted)]">読み込み中…</main>}>
       <ReportPageInner />
     </Suspense>
   );

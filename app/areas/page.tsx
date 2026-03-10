@@ -15,7 +15,7 @@ export default function AreasPage() {
   return (
     <main className="app-shell mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <section className="section-frame p-6 sm:p-8">
-        <span className="eyebrow">Area Hubs</span>
+        <span className="eyebrow">地域ハブ</span>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)] sm:text-4xl">

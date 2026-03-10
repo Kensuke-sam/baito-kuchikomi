@@ -268,7 +268,7 @@ function SubmitPageInner() {
             ✓
           </div>
           <p className="mt-6">
-            <span className="eyebrow">Submission Complete</span>
+            <span className="eyebrow">投稿完了</span>
           </p>
           <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
             投稿を受け付けました
@@ -294,7 +294,7 @@ function SubmitPageInner() {
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="section-frame flex h-fit flex-col gap-6 p-6 lg:sticky lg:top-24">
           <div>
-            <span className="eyebrow">Moderated Intake</span>
+            <span className="eyebrow">掲載前の確認</span>
             <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
               体験談を投稿する
             </h1>
