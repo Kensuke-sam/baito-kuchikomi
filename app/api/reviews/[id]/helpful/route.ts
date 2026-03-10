@@ -54,6 +54,19 @@ export async function POST(
     return NextResponse.json({ error: "対象の体験談が見つかりません。" }, { status: 404 });
   }
 
+  async function countHelpfulVotes() {
+    const { count, error: countError } = await supabase
+      .from("review_helpful_votes")
+      .select("*", { count: "exact", head: true })
+      .eq("review_id", id);
+
+    if (countError) {
+      return { count: null, error: countError };
+    }
+
+    return { count: count ?? 0, error: null };
+  }
+
   const { error: voteError } = await supabase.from("review_helpful_votes").insert({
     review_id: id,
     voter_token: parsed.data.voter_token,
@@ -61,10 +74,7 @@ export async function POST(
 
   if (voteError) {
     if (voteError.code === "23505") {
-      const { count, error: countError } = await supabase
-        .from("review_helpful_votes")
-        .select("*", { count: "exact", head: true })
-        .eq("review_id", id);
+      const { count, error: countError } = await countHelpfulVotes();
 
       if (countError) {
         console.error("review helpful vote count failed after duplicate", countError);
@@ -82,33 +92,16 @@ export async function POST(
     return NextResponse.json({ error: "評価の保存に失敗しました。" }, { status: 500 });
   }
 
-  const { count, error: countError } = await supabase
-    .from("review_helpful_votes")
-    .select("*", { count: "exact", head: true })
-    .eq("review_id", id);
+  const { count, error: countError } = await countHelpfulVotes();
 
   if (countError) {
     console.error("review helpful vote count failed", countError);
     return NextResponse.json({ error: "評価の件数取得に失敗しました。" }, { status: 500 });
   }
 
-  const nextHelpfulCount = count ?? (review.helpful_count ?? 0) + 1;
-
-  const { data: updatedReview, error: updateError } = await supabase
-    .from("reviews")
-    .update({ helpful_count: nextHelpfulCount })
-    .eq("id", id)
-    .select("helpful_count")
-    .single();
-
-  if (updateError) {
-    console.error("review helpful count update failed", updateError);
-    return NextResponse.json({ error: "評価の更新に失敗しました。" }, { status: 500 });
-  }
-
   return NextResponse.json({
     ok: true,
     already_voted: false,
-    helpful_count: updatedReview.helpful_count ?? nextHelpfulCount,
+    helpful_count: count ?? (review.helpful_count ?? 0) + 1,
   });
 }

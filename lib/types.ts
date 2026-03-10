@@ -12,6 +12,7 @@ export interface Place {
   lng: number;
   area_tag?: string;
   status: ContentStatus;
+  admin_notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +27,7 @@ export interface Review {
   period_from?: string;
   period_to?: string;
   status: ContentStatus;
+  admin_notes?: string;
   created_at: string;
   updated_at: string;
 }

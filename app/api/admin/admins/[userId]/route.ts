@@ -8,28 +8,60 @@ const schema = z.object({
   role: z.enum(["admin", "super_admin"]),
 });
 
-async function getAdminRecord(userId: string) {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("admins")
-    .select("user_id, role")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  return { admin, data: data as { user_id: string; role: AdminRole } | null, error };
+interface AdminMutationResult {
+  ok: boolean;
+  error_code?: "not_found" | "last_admin" | "last_super_admin";
+  previous_role?: AdminRole;
+  next_role?: AdminRole;
 }
 
-async function countAdmins(admin: ReturnType<typeof createAdminClient>, role?: AdminRole) {
-  let query = admin
-    .from("admins")
-    .select("*", { count: "exact", head: true });
+function isAdminMutationResult(value: unknown): value is AdminMutationResult {
+  if (!value || typeof value !== "object") return false;
 
-  if (role) {
-    query = query.eq("role", role);
+  const payload = value as Record<string, unknown>;
+  if (typeof payload.ok !== "boolean") return false;
+
+  if (payload.error_code !== undefined && typeof payload.error_code !== "string") return false;
+  if (payload.previous_role !== undefined && typeof payload.previous_role !== "string") return false;
+  if (payload.next_role !== undefined && typeof payload.next_role !== "string") return false;
+
+  return true;
+}
+
+function toRoleUpdateErrorResponse(code: AdminMutationResult["error_code"]) {
+  switch (code) {
+    case "not_found":
+      return NextResponse.json({ error: "対象の管理者が見つかりません。" }, { status: 404 });
+    case "last_super_admin":
+      return NextResponse.json({ error: "最後のスーパー管理者は降格できません。" }, { status: 422 });
+    default:
+      return NextResponse.json({ error: "権限の更新に失敗しました。" }, { status: 500 });
+  }
+}
+
+function toAdminDeleteErrorResponse(code: AdminMutationResult["error_code"]) {
+  switch (code) {
+    case "not_found":
+      return NextResponse.json({ error: "対象の管理者が見つかりません。" }, { status: 404 });
+    case "last_admin":
+      return NextResponse.json({ error: "最後の管理者は削除できません。" }, { status: 422 });
+    case "last_super_admin":
+      return NextResponse.json({ error: "最後のスーパー管理者は削除できません。" }, { status: 422 });
+    default:
+      return NextResponse.json({ error: "管理者権限の削除に失敗しました。" }, { status: 500 });
+  }
+}
+
+function buildAdminRevokeAuditDetail(
+  previousRole: AdminRole | undefined,
+  actorAdminId: string,
+  targetAdminId: string
+) {
+  if (actorAdminId === targetAdminId) {
+    return { role: previousRole, actor_admin_id: actorAdminId };
   }
 
-  const { count, error } = await query;
-  return { count: count ?? 0, error };
+  return { role: previousRole };
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ userId: string }> }) {
@@ -57,38 +89,28 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ userId
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 422 });
   }
 
-  const { admin, data: targetAdmin, error: targetError } = await getAdminRecord(userId);
-  if (targetError) {
-    console.error("target admin lookup failed", targetError);
-    return NextResponse.json({ error: "対象ユーザーの確認に失敗しました。" }, { status: 500 });
-  }
-  if (!targetAdmin) {
-    return NextResponse.json({ error: "対象の管理者が見つかりません。" }, { status: 404 });
-  }
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("update_admin_role_safely", {
+    p_user_id: userId,
+    p_next_role: parsed.data.role,
+  });
 
-  if (targetAdmin.role === parsed.data.role) {
-    return NextResponse.json({ ok: true });
-  }
-
-  if (targetAdmin.role === "super_admin" && parsed.data.role !== "super_admin") {
-    const { count: superAdminCount, error: countError } = await countAdmins(admin, "super_admin");
-    if (countError) {
-      console.error("super admin count failed", countError);
-      return NextResponse.json({ error: "権限数の確認に失敗しました。" }, { status: 500 });
-    }
-    if (superAdminCount <= 1) {
-      return NextResponse.json({ error: "最後のスーパー管理者は降格できません。" }, { status: 422 });
-    }
-  }
-
-  const { error: updateError } = await admin
-    .from("admins")
-    .update({ role: parsed.data.role })
-    .eq("user_id", userId);
-
-  if (updateError) {
-    console.error("admin role update failed", updateError);
+  if (error) {
+    console.error("safe admin role update failed", error);
     return NextResponse.json({ error: "権限の更新に失敗しました。" }, { status: 500 });
+  }
+
+  if (!isAdminMutationResult(data)) {
+    console.error("safe admin role update returned invalid payload", data);
+    return NextResponse.json({ error: "権限の更新に失敗しました。" }, { status: 500 });
+  }
+
+  if (!data.ok) {
+    return toRoleUpdateErrorResponse(data.error_code);
+  }
+
+  if (data.previous_role === data.next_role) {
+    return NextResponse.json({ ok: true });
   }
 
   const { error: auditError } = await admin.from("audit_logs").insert({
@@ -96,7 +118,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ userId
     action: "update_admin_role",
     target_type: "admin",
     target_id: userId,
-    detail: { before: targetAdmin.role, after: parsed.data.role },
+    detail: { before: data.previous_role, after: data.next_role },
   });
 
   if (auditError) {
@@ -121,51 +143,32 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ userId:
     return NextResponse.json({ error: "不正なユーザーIDです。" }, { status: 400 });
   }
 
-  const { admin, data: targetAdmin, error: targetError } = await getAdminRecord(userId);
-  if (targetError) {
-    console.error("target admin lookup failed", targetError);
-    return NextResponse.json({ error: "対象ユーザーの確認に失敗しました。" }, { status: 500 });
-  }
-  if (!targetAdmin) {
-    return NextResponse.json({ error: "対象の管理者が見つかりません。" }, { status: 404 });
-  }
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("revoke_admin_safely", {
+    p_user_id: userId,
+  });
 
-  const { count: adminCount, error: adminCountError } = await countAdmins(admin);
-  if (adminCountError) {
-    console.error("admin count failed", adminCountError);
-    return NextResponse.json({ error: "管理者数の確認に失敗しました。" }, { status: 500 });
-  }
-  if (adminCount <= 1) {
-    return NextResponse.json({ error: "最後の管理者は削除できません。" }, { status: 422 });
-  }
-
-  if (targetAdmin.role === "super_admin") {
-    const { count: superAdminCount, error: superAdminCountError } = await countAdmins(admin, "super_admin");
-    if (superAdminCountError) {
-      console.error("super admin count failed", superAdminCountError);
-      return NextResponse.json({ error: "権限数の確認に失敗しました。" }, { status: 500 });
-    }
-    if (superAdminCount <= 1) {
-      return NextResponse.json({ error: "最後のスーパー管理者は削除できません。" }, { status: 422 });
-    }
-  }
-
-  const { error: deleteError } = await admin
-    .from("admins")
-    .delete()
-    .eq("user_id", userId);
-
-  if (deleteError) {
-    console.error("admin delete failed", deleteError);
+  if (error) {
+    console.error("safe admin revoke failed", error);
     return NextResponse.json({ error: "管理者権限の削除に失敗しました。" }, { status: 500 });
   }
 
+  if (!isAdminMutationResult(data)) {
+    console.error("safe admin revoke returned invalid payload", data);
+    return NextResponse.json({ error: "管理者権限の削除に失敗しました。" }, { status: 500 });
+  }
+
+  if (!data.ok) {
+    return toAdminDeleteErrorResponse(data.error_code);
+  }
+
+  const isSelfRevoke = auth.user.id === userId;
   const { error: auditError } = await admin.from("audit_logs").insert({
-    admin_id: auth.user.id,
+    admin_id: isSelfRevoke ? null : auth.user.id,
     action: "revoke_admin",
     target_type: "admin",
     target_id: userId,
-    detail: { role: targetAdmin.role },
+    detail: buildAdminRevokeAuditDetail(data.previous_role, auth.user.id, userId),
   });
 
   if (auditError) {
