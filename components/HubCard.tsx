@@ -18,21 +18,26 @@ export function HubCard({ hub }: Props) {
 
   return (
     <Link href={getHubPath(hub)} className="hub-card-compact">
-      <div className="hub-card-compact__header">
+      {/* PC: アイコンと本文を横並び */}
+      <div className="hub-card-compact__body">
         <Image
           src={icon}
           alt={hub.eyebrow}
-          width={40}
-          height={40}
+          width={44}
+          height={44}
           className="hub-card-compact__icon"
         />
-        <div className="hub-card-compact__titles">
-          <span className="hub-card-compact__short-title">{hub.shortTitle}</span>
-          <span className="hub-card-compact__eyebrow">{hub.eyebrow}</span>
+        <div className="hub-card-compact__content">
+          <div className="hub-card-compact__header">
+            <div className="hub-card-compact__titles">
+              <span className="hub-card-compact__eyebrow">{hub.eyebrow}</span>
+              <span className="hub-card-compact__short-title">{hub.shortTitle}</span>
+            </div>
+            <span className="hub-card-compact__arrow">→</span>
+          </div>
+          <p className="hub-card-compact__excerpt">{hub.excerpt}</p>
         </div>
-        <span className="hub-card-compact__arrow">→</span>
       </div>
-      <p className="hub-card-compact__excerpt">{hub.excerpt}</p>
     </Link>
   );
 }
