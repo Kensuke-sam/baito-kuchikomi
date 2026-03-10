@@ -193,8 +193,8 @@ export default async function ListPage({ searchParams }: Props) {
             <div className="mt-6 space-y-6">
               <FirstReviewCallout
                 eyebrow="最初の体験談募集"
-                title="この一覧はまだ空です。だから今は、最初の投稿を集める面に変えます。"
-                description="投稿が0件のままでは、口コミ一覧が比較材料として機能しません。偽の口コミで埋めず、公開0件であることを明示したうえで、最初の実体験を安心して送れる導線を前面に出します。"
+                title="この一覧にはまだ体験談がありません。最初の投稿を募集しています。"
+                description="この一覧には、承認後に公開された体験談が並びます。まだ1件目を待っている状態です。匿名で投稿でき、勤務先が未掲載でもそのまま登録して送れます。"
                 highlights={[
                   {
                     title: "匿名で投稿できる",
@@ -213,7 +213,7 @@ export default async function ListPage({ searchParams }: Props) {
                 primaryLabel="最初の体験談を投稿する"
                 secondaryHref="/guidelines"
                 secondaryLabel="投稿ガイドライン"
-                footnote="立ち上げ期は、一覧そのものより『安心して最初の1件を投稿できるか』のほうが重要です。"
+                footnote="シフト、人間関係、研修、辞めやすさなど、ひとつの実体験でも次の人の判断材料になります。"
               />
 
               <section className="section-frame p-6 sm:p-7">

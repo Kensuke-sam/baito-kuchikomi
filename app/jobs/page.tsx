@@ -45,9 +45,9 @@ export default function JobsPage() {
             </p>
           </div>
           <div className="glass-panel rounded-[24px] p-4">
-            <p className="text-sm font-semibold text-[var(--page-ink)]">収益導線の役割</p>
+            <p className="text-sm font-semibold text-[var(--page-ink)]">次の探し方につなげる</p>
             <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
-              職種で悩みを言語化したあと、求人比較や単発比較へ自然につなげます。
+              職種ごとの特徴を押さえたあと、求人比較や単発バイト比較に進むと候補を絞りやすくなります。
             </p>
           </div>
         </div>

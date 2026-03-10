@@ -62,7 +62,7 @@ export default async function HomePage() {
             </p>
             {isZeroReviewLaunch && (
               <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--accent)]">
-                いまは公開済みの体験談が 0 件です。立ち上げ期なので、ガイドを先に置きつつ最初の体験談を募集しています。
+                いまは公開済みの体験談が 0 件です。匿名で投稿でき、公開前に内容を確認したうえで掲載します。
               </p>
             )}
           </div>
@@ -104,7 +104,7 @@ export default async function HomePage() {
             </p>
             <p className="mt-2 text-sm text-[var(--page-muted)]">
               {isZeroReviewLaunch
-                ? "口コミサイトとしては立ち上げ直後の状態です。最初の1件を募集しています。"
+                ? "まだ体験談はありません。最初の投稿を受け付けています。"
                 : "公開済みの体験談だけを一覧と勤務先ページに反映しています。"}
             </p>
           </div>
@@ -154,8 +154,8 @@ export default async function HomePage() {
         <section className="mt-6">
           <FirstReviewCallout
             eyebrow="最初の体験談募集"
-            title="公開済みの体験談はまだありません。だから隠さず、最初の投稿を取りに行きます。"
-            description="口コミが0件のままでは、一覧や勤務先ページが信頼補強になりません。立ち上げ期はガイドを主役にしつつ、最初の投稿者が安心して送れる状態を前面に出すほうが自然です。"
+            title="まだ公開済みの体験談はありません。最初の投稿を募集しています。"
+            description="このサイトで働き方の実感が伝わるように、最初の体験談を受け付けています。匿名で投稿でき、公開前に内容を確認します。シフトや人間関係、研修の様子など、短い実体験でも次の人の参考になります。"
             highlights={[
               {
                 title: "匿名で送信",
@@ -174,7 +174,7 @@ export default async function HomePage() {
             primaryLabel="最初の体験談を投稿する"
             secondaryHref="/guidelines"
             secondaryLabel="投稿ガイドライン"
-            footnote="偽の口コミを置くのではなく、公開0件であることを明示したうえで、最初の実体験を集めに行く方針です。"
+            footnote="まだ公開済みの体験談がないことを明示したまま、実際に働いた人の投稿を受け付けています。"
           />
         </section>
       )}
@@ -204,9 +204,9 @@ export default async function HomePage() {
         </section>
 
         <aside className="section-frame p-6 sm:p-7">
-          <span className="eyebrow">安全運用の導線</span>
+          <span className="eyebrow">安心して使うために</span>
           <h2 className="mt-4 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
-            安全寄りに読むための導線
+            口コミを読む前に知っておきたいこと
           </h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-[var(--page-muted)]">
             <div className="rounded-[22px] border border-[var(--line)] bg-white/72 px-4 py-4">
@@ -214,12 +214,12 @@ export default async function HomePage() {
               <p className="mt-2">断定や個人特定表現は避け、体験として読める形に整えています。</p>
             </div>
             <div className="rounded-[22px] border border-[var(--line)] bg-white/72 px-4 py-4">
-              <p className="font-semibold text-[var(--page-ink)]">次の仕事探しも一緒に</p>
-              <p className="mt-2">悩み記事と口コミをつなぎ、読むだけで止まらない導線にしています。</p>
+              <p className="font-semibold text-[var(--page-ink)]">次の候補も探しやすい</p>
+              <p className="mt-2">ガイドと口コミを行き来しながら、自分に合う働き方を探せます。</p>
             </div>
             <div className="rounded-[22px] border border-[var(--line)] bg-white/72 px-4 py-4">
-              <p className="font-semibold text-[var(--page-ink)]">削除・訂正導線あり</p>
-              <p className="mt-2">問題がある場合は削除申請と当事者コメントの窓口を使えます。</p>
+              <p className="font-semibold text-[var(--page-ink)]">削除・訂正の窓口あり</p>
+              <p className="mt-2">問題がある場合は削除申請フォームや当事者コメントフォームを利用できます。</p>
             </div>
           </div>
         </aside>
@@ -304,7 +304,7 @@ export default async function HomePage() {
             <div className="mt-3 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
               <p>・悩みが強いなら先にガイドを読む</p>
               <p>・候補を比べたいなら地図と一覧へ進む</p>
-              <p>・問題があるときは削除申請や通報導線を使う</p>
+              <p>・問題があるときは削除申請フォームや通報フォームを使う</p>
             </div>
           </div>
 
@@ -329,7 +329,7 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="soft-pill">
-              {approvedPlaces.length > 0 ? `掲載勤務先 ${approvedPlaces.length} 件` : "立ち上げ中"}
+              {approvedPlaces.length > 0 ? `掲載勤務先 ${approvedPlaces.length} 件` : "投稿受付中"}
             </div>
           </div>
 
@@ -339,7 +339,7 @@ export default async function HomePage() {
               <div className="glass-panel inline-flex max-w-xl rounded-full px-4 py-2 text-xs text-[var(--page-muted)]">
                 {approvedPlaces.length > 0
                   ? "主観レビューを地図で可視化しています。掲載・削除・当事者コメントはすべて管理者確認後に反映されます。"
-                  : "公開済みの勤務先がまだ0件のため、いまはガイドと投稿導線を優先しています。"}
+                  : "公開済みの勤務先はまだありません。最初の勤務先と体験談の投稿を受け付けています。"}
               </div>
             </div>
             <div className="absolute bottom-5 left-5 z-10">

@@ -23,7 +23,7 @@ export default function AreasPage() {
             </h1>
             <p className="mt-4 text-sm leading-7 text-[var(--page-muted)]">
               同じ職種でも、地域や駅、時間帯でしんどさは変わります。大きい都市ほど案件数の多さに流されやすいので、
-              通学導線、終電、仕事内容の見えやすさで比較する前提を作ります。
+              通学のしやすさ、終電、仕事内容の見えやすさで比較する前提を作ります。
             </p>
           </div>
           <Link href="/list" className="secondary-button text-sm">

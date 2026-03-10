@@ -108,7 +108,7 @@ export default async function PlaceDetailPage({ params }: Props) {
           <FirstReviewCallout
             eyebrow="最初の体験談募集"
             title="この勤務先の公開済み体験談はまだありません。"
-            description="比較材料がないままだと、この勤務先ページの価値が出ません。この職場で働いたことがある人の最初の1件を募集しています。"
+            description="この職場で働いたことがある方の体験談を募集しています。匿名で投稿でき、公開前に内容を確認します。"
             highlights={[
               {
                 title: "シフトの実感",

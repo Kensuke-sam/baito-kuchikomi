@@ -286,14 +286,37 @@ function SubmitPageInner() {
             投稿を受け付けました
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--page-muted)]">
-            勤務先と体験談は管理者確認後に公開されます。通常は 1〜3 営業日以内に反映します。
+            勤務先と体験談は管理者確認後に公開されます。通常は 1〜3 営業日以内に反映します。公開前に、個人情報や断定的な表現がないかも確認します。
           </p>
+          <div className="mx-auto mt-8 grid max-w-2xl gap-3 text-left sm:grid-cols-3">
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-sm font-semibold text-[var(--page-ink)]">公開されない情報</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                IP アドレスやユーザーエージェントなどの内部ログは公開しません。
+              </p>
+            </div>
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-sm font-semibold text-[var(--page-ink)]">掲載までの流れ</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                主観レビューとして読める形かを確認してから公開します。
+              </p>
+            </div>
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-sm font-semibold text-[var(--page-ink)]">問題があるとき</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                公開後の連絡先として削除申請フォームと当事者コメント窓口を用意しています。
+              </p>
+            </div>
+          </div>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/" className="primary-button text-sm">
               トップへ戻る
             </Link>
             <Link href="/list" className="secondary-button text-sm">
               一覧を見る
+            </Link>
+            <Link href="/guidelines" className="secondary-button text-sm">
+              投稿ガイドライン
             </Link>
           </div>
         </section>
@@ -306,32 +329,41 @@ function SubmitPageInner() {
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="section-frame flex h-fit flex-col gap-6 p-6 lg:sticky lg:top-24">
           <div>
-            <span className="eyebrow">掲載前の確認</span>
+            <span className="eyebrow">匿名で投稿</span>
             <h1 className="mt-4 text-3xl font-semibold tracking-[-0.05em] text-[var(--page-ink)]">
               体験談を投稿する
             </h1>
             <p className="mt-4 text-sm leading-7 text-[var(--page-muted)]">
-              勤務先の登録と体験談の投稿をまとめて受け付けます。掲載前に管理者が確認し、断定表現や個人情報は公開しません。
+              勤務先の登録と体験談の投稿をまとめて受け付けます。掲載前に管理者が確認し、断定表現や個人情報は公開しません。IP アドレスやユーザーエージェントは不正対策のため内部保存し、公開ページには表示しません。
             </p>
           </div>
 
           <div className="space-y-3">
             <div className="glass-panel rounded-[24px] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-                Step 1
+                安心材料 1
               </p>
-              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">勤務先を特定</p>
+              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">公開前に確認</p>
               <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
-                住所を確認して、日本国内の勤務先かを判定します。
+                投稿はすぐ公開されず、主観レビューとして読める内容かを確認してから掲載します。
               </p>
             </div>
             <div className="glass-panel rounded-[24px] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
-                Step 2
+                安心材料 2
               </p>
-              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">主観レビューを入力</p>
+              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">公開しない情報</p>
               <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
-                具体的な体験を、断定ではなく主観表現で書いてください。
+                IP アドレス、ユーザーエージェント、内部識別子は不正対策のため保存しますが、公開ページには出しません。
+              </p>
+            </div>
+            <div className="glass-panel rounded-[24px] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--page-muted)]">
+                安心材料 3
+              </p>
+              <p className="mt-2 text-base font-semibold text-[var(--page-ink)]">問題があるときの窓口</p>
+              <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                公開後に問題がある場合は、削除申請フォームと当事者コメントフォームから連絡できます。
               </p>
             </div>
           </div>
@@ -343,9 +375,14 @@ function SubmitPageInner() {
               <p>・個人名、電話番号、SNS アカウントは書かない</p>
               <p>・日本国外の勤務先は受け付けない</p>
             </div>
-            <Link href="/guidelines" className="mt-4 inline-flex text-sm font-semibold text-[var(--accent)] hover:opacity-80">
-              詳細ガイドラインを見る →
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/guidelines" className="inline-flex text-sm font-semibold text-[var(--accent)] hover:opacity-80">
+                詳細ガイドラインを見る →
+              </Link>
+              <Link href="/takedown" className="inline-flex text-sm font-semibold text-[var(--accent)] hover:opacity-80">
+                削除申請フォーム →
+              </Link>
+            </div>
           </div>
         </aside>
 
@@ -507,6 +544,23 @@ function SubmitPageInner() {
                 <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
                   体験談を入力
                 </h2>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="glass-panel rounded-[24px] p-4">
+                  <p className="text-sm font-semibold text-[var(--page-ink)]">書きやすい順番</p>
+                  <div className="mt-2 space-y-2 text-sm leading-7 text-[var(--page-muted)]">
+                    <p>1. いつ、どのくらい働いたかを書く</p>
+                    <p>2. 良かった点ときつかった点を分けて書く</p>
+                    <p>3. どんな人に合いそうかをひと言添える</p>
+                  </div>
+                </div>
+                <div className="glass-panel rounded-[24px] p-4">
+                  <p className="text-sm font-semibold text-[var(--page-ink)]">短い例</p>
+                  <p className="mt-2 text-sm leading-7 text-[var(--page-muted)]">
+                    「夕方はかなり忙しかったですが、研修は丁寧でした。テスト期間はシフト相談しやすく、接客に慣れたい人には向いていると感じました。」
+                  </p>
+                </div>
               </div>
 
               {!preselectedPlaceId && hasResolvedLocation && (
