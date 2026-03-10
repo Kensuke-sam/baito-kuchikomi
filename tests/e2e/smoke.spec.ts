@@ -15,7 +15,7 @@ const smokeRoutes = [
   { path: "/report", title: /^通報フォーム \| バイト体験談マップ$/, robots: "noindex, follow" },
   { path: "/takedown", title: /^削除申請フォーム \| バイト体験談マップ$/, robots: "noindex, follow" },
   { path: "/official-response", title: /^当事者コメント送信 \| バイト体験談マップ$/, robots: "noindex, follow" },
-] as const;
+] satisfies ReadonlyArray<{ path: string; title: RegExp; robots?: string }>;
 
 for (const route of smokeRoutes) {
   test(`${route.path} renders with shared navigation`, async ({ page }) => {

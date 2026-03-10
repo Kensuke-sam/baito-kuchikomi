@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { rateLimit, getRealIp } from "@/lib/rateLimit";
+import { createRateLimitHeaders, rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText, sanitizeText } from "@/lib/sanitize";
 import { REPORT_REASONS } from "@/lib/types";
 import { sendAdminNotification } from "@/lib/notifications";
@@ -17,9 +17,12 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const ip = getRealIp(req);
-  const { allowed } = rateLimit(`reports:${ip}`, 10, 10 * 60 * 1000);
-  if (!allowed) {
-    return NextResponse.json({ error: "しばらく待ってから再試行してください。" }, { status: 429 });
+  const rate = await rateLimit(`reports:${ip}`, 10, 10 * 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "しばらく待ってから再試行してください。" },
+      { status: 429, headers: createRateLimitHeaders(rate) }
+    );
   }
 
   let body: unknown;
@@ -55,13 +58,18 @@ export async function POST(req: Request) {
   }
 
   // 同一 IP から同じ対象への重複通報を防止
-  const { data: existingReport } = await supabase
+  const { data: existingReport, error: existingError } = await supabase
     .from("reports")
     .select("id")
     .eq("reporter_ip", ip)
     .eq("target_type", d.target_type)
     .eq("target_id", d.target_id)
     .maybeSingle();
+
+  if (existingError) {
+    console.error("report existing check failed", existingError);
+    return NextResponse.json({ error: "通報の確認に失敗しました。" }, { status: 500 });
+  }
 
   if (existingReport) {
     return NextResponse.json(
@@ -81,27 +89,39 @@ export async function POST(req: Request) {
   });
 
   if (error) {
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: "この投稿は既に通報済みです。" },
+        { status: 409 }
+      );
+    }
+
     console.error("reports insert failed", error);
     return NextResponse.json({ error: "通報の送信に失敗しました。" }, { status: 500 });
   }
 
   // 通報件数を確認して自動非表示の発動を通知に含める
   const AUTO_HIDE_THRESHOLD = 3;
-  const { count: reportCount } = await supabase
+  const { count, error: reportCountError } = await supabase
     .from("reports")
     .select("*", { count: "exact", head: true })
     .eq("target_type", d.target_type)
     .eq("target_id", d.target_id);
 
-  const wasAutoHidden = (reportCount ?? 0) >= AUTO_HIDE_THRESHOLD;
+  if (reportCountError) {
+    console.error("reports count failed", reportCountError);
+  }
+
+  const reportCount = reportCountError ? null : (count ?? 0);
+  const wasAutoHidden = reportCount !== null && reportCount >= AUTO_HIDE_THRESHOLD;
 
   const notificationLines = [
     "新しい通報を受け付けました。",
     `対象種別: ${d.target_type}`,
     `対象ID: ${d.target_id}`,
     `理由: ${reason}`,
-    `詳細: ${detail ?? "なし"}`,
-    `累計通報件数: ${reportCount ?? 0}`,
+    `累計通報件数: ${reportCount ?? "取得失敗"}`,
+    "詳細は管理画面で確認してください。",
   ];
 
   if (wasAutoHidden) {

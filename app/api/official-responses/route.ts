@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { rateLimit, getRealIp } from "@/lib/rateLimit";
+import { createRateLimitHeaders, rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeText } from "@/lib/sanitize";
 import { sendAdminNotification } from "@/lib/notifications";
 
@@ -12,9 +12,12 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const ip = getRealIp(req);
-  const { allowed } = rateLimit(`official:${ip}`, 3, 60 * 60 * 1000);
-  if (!allowed) {
-    return NextResponse.json({ error: "しばらく待ってから再試行してください。" }, { status: 429 });
+  const rate = await rateLimit(`official:${ip}`, 3, 60 * 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "しばらく待ってから再試行してください。" },
+      { status: 429, headers: createRateLimitHeaders(rate) }
+    );
   }
 
   let body: unknown;
@@ -47,7 +50,8 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (placeError) {
-    return NextResponse.json({ error: placeError.message }, { status: 500 });
+    console.error("official response place lookup failed", placeError);
+    return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
   }
   if (!place) {
     return NextResponse.json({ error: "対象の勤務先が見つかりません。" }, { status: 404 });
@@ -71,7 +75,7 @@ export async function POST(req: Request) {
     lines: [
       "新しい当事者コメントを受け付けました。",
       `勤務先ID: ${d.place_id}`,
-      `本文: ${responseBody}`,
+      "詳細は管理画面で確認してください。",
     ],
   });
 

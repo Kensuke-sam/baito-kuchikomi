@@ -24,9 +24,14 @@ export function sanitizeEmail(input: unknown): string {
 
 export function sanitizeUrl(input: unknown): string {
   const s = sanitizeShortText(input, 2000);
-  // 危険スキームを除去
-  if (/^(javascript|data|vbscript):/i.test(s)) return "";
-  return s;
+  if (!s) return "";
+  try {
+    const url = new URL(s);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    return s;
+  } catch {
+    return "";
+  }
 }
 
 /** Leaflet ポップアップなど dangerouslySetInnerHTML 相当の箇所で使う HTML エスケープ */

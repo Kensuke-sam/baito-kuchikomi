@@ -21,6 +21,14 @@ function hasProhibitedContent(text: string): boolean {
   return PROHIBITED_PATTERNS.some((re) => re.test(text));
 }
 
+function createSubmissionToken() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return "";
+}
+
 function SubmitPageInner() {
   const searchParams = useSearchParams();
   const preselectedPlaceId = searchParams.get("place_id");
@@ -35,6 +43,8 @@ function SubmitPageInner() {
   const [placeAddress, setPlaceAddress] = useState("");
   const [placeStation, setPlaceStation] = useState("");
   const [placeId, setPlaceId] = useState(preselectedPlaceId ?? "");
+  const [placeSubmissionToken] = useState(createSubmissionToken);
+  const [reviewSubmissionToken] = useState(createSubmissionToken);
   const [geocoding, setGeocoding] = useState(false);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
@@ -82,8 +92,8 @@ function SubmitPageInner() {
         };
       }
 
-      const data: { lat?: number; lng?: number; provider?: "mapbox" | "nominatim" } = await response.json();
-      if (typeof data.lat === "number" && typeof data.lng === "number") {
+      const data: { ok?: boolean; lat?: number; lng?: number; provider?: "mapbox" | "nominatim" } = await response.json();
+      if (data.ok === true && typeof data.lat === "number" && typeof data.lng === "number") {
         return { ok: true, lat: data.lat, lng: data.lng, provider: data.provider ?? "nominatim" };
       }
 
@@ -219,6 +229,7 @@ function SubmitPageInner() {
             nearest_station: placeStation,
             lat,
             lng,
+            submission_token: placeSubmissionToken || undefined,
           }),
         });
 
@@ -226,7 +237,7 @@ function SubmitPageInner() {
           throw new Error(await readErrorMessage(placeRes, "勤務先の登録に失敗しました。"));
         }
 
-        const placeData: { id: string } = await placeRes.json();
+        const placeData: { ok?: boolean; id: string; existing?: boolean } = await placeRes.json();
         resolvedPlaceId = placeData.id;
         setPlaceId(placeData.id);
       }
@@ -238,6 +249,7 @@ function SubmitPageInner() {
           place_id: resolvedPlaceId,
           title,
           body,
+          submission_token: reviewSubmissionToken || undefined,
           tags,
           period_from: periodFrom,
           period_to: periodTo,

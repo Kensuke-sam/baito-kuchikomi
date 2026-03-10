@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { rateLimit, getRealIp } from "@/lib/rateLimit";
+import { createRateLimitHeaders, rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText, sanitizeText, sanitizeEmail, sanitizeUrl } from "@/lib/sanitize";
 import { TAKEDOWN_REASONS } from "@/lib/types";
 import { sendAdminNotification } from "@/lib/notifications";
@@ -19,9 +19,12 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const ip = getRealIp(req);
-  const { allowed } = rateLimit(`takedowns:${ip}`, 5, 60 * 60 * 1000); // 1時間5件
-  if (!allowed) {
-    return NextResponse.json({ error: "しばらく待ってから再試行してください。" }, { status: 429 });
+  const rate = await rateLimit(`takedowns:${ip}`, 5, 60 * 60 * 1000); // 1時間5件
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "しばらく待ってから再試行してください。" },
+      { status: 429, headers: createRateLimitHeaders(rate) }
+    );
   }
 
   let body: unknown;
@@ -69,12 +72,8 @@ export async function POST(req: Request) {
     subject: "[バイト体験談マップ] 新しい削除申請",
     lines: [
       "新しい削除申請を受け付けました。",
-      `対象URL: ${targetUrl}`,
-      `申請者: ${contactName}`,
-      `連絡先: ${contactEmail}`,
       `理由: ${reason}`,
-      `詳細: ${detail}`,
-      `証拠URL: ${evidenceUrl ?? "なし"}`,
+      "詳細は管理画面で確認してください。",
     ],
   });
 

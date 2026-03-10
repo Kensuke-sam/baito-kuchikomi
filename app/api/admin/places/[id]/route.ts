@@ -40,7 +40,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .eq("id", id)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (existingError) {
+    console.error("place lookup failed", existingError);
+    return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
+  }
   if (!existingPlace) {
     return NextResponse.json({ error: "対象の勤務先が見つかりません。" }, { status: 404 });
   }
@@ -50,7 +53,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .update({ status: parsed.data.status })
     .eq("id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("place update failed", error);
+    return NextResponse.json({ error: "勤務先の更新に失敗しました。" }, { status: 500 });
+  }
 
   const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
 
@@ -63,7 +69,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
 
   if (auditError) {
-    return NextResponse.json({ error: "監査ログの記録に失敗しました。" }, { status: 500 });
+    console.error("audit log insert failed (place)", auditError);
   }
 
   return NextResponse.json({ ok: true });

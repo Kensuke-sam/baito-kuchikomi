@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/server";
-import { rateLimit, getRealIp } from "@/lib/rateLimit";
+import { createRateLimitHeaders, rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText } from "@/lib/sanitize";
 import { isWithinSubmissionArea } from "@/lib/siteConfig";
 
@@ -12,6 +12,7 @@ const schema = z.object({
   lat:             z.number().min(-90).max(90),
   lng:             z.number().min(-180).max(180),
   area_tag:        z.string().max(50).optional(),
+  submission_token: z.string().uuid().optional(),
 });
 
 export async function GET() {
@@ -32,9 +33,12 @@ export async function GET() {
 export async function POST(req: Request) {
   // Rate limit: 1IP につき 10分間に3件まで
   const ip = getRealIp(req);
-  const { allowed } = rateLimit(`places:${ip}`, 3, 10 * 60 * 1000);
-  if (!allowed) {
-    return NextResponse.json({ error: "しばらく待ってから再試行してください。" }, { status: 429 });
+  const rate = await rateLimit(`places:${ip}`, 3, 10 * 60 * 1000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "しばらく待ってから再試行してください。" },
+      { status: 429, headers: createRateLimitHeaders(rate) }
+    );
   }
 
   let body: unknown;
@@ -53,6 +57,7 @@ export async function POST(req: Request) {
   const address = sanitizeShortText(d.address, 200);
   const nearestStation = d.nearest_station ? sanitizeShortText(d.nearest_station, 100) || null : null;
   const areaTag = d.area_tag ? sanitizeShortText(d.area_tag, 50) || null : null;
+  const submissionToken = d.submission_token ?? null;
 
   if (!name || !address) {
     return NextResponse.json(
@@ -66,6 +71,23 @@ export async function POST(req: Request) {
       { error: "現在は日本国内の勤務先のみ投稿できます。" },
       { status: 422 }
     );
+  }
+
+  if (submissionToken) {
+    const { data: existingByToken, error: tokenError } = await supabase
+      .from("places")
+      .select("id")
+      .eq("submission_token", submissionToken)
+      .maybeSingle();
+
+    if (tokenError) {
+      console.error("places token lookup failed", tokenError);
+      return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
+    }
+
+    if (existingByToken) {
+      return NextResponse.json({ ok: true, id: existingByToken.id, existing: true });
+    }
   }
 
   const { data: existingPlaces, error: existingError } = await supabase
@@ -84,7 +106,7 @@ export async function POST(req: Request) {
 
   const existingPlace = existingPlaces?.[0];
   if (existingPlace) {
-    return NextResponse.json({ id: existingPlace.id, existing: true });
+    return NextResponse.json({ ok: true, id: existingPlace.id, existing: true });
   }
 
   const { data, error } = await supabase
@@ -93,17 +115,36 @@ export async function POST(req: Request) {
       name,
       address,
       nearest_station: nearestStation,
-      lat:             d.lat,
-      lng:             d.lng,
-      area_tag:        areaTag,
-      status:          "pending",
+      lat: d.lat,
+      lng: d.lng,
+      area_tag: areaTag,
+      status: "pending",
+      submission_token: submissionToken,
     })
     .select("id")
     .single();
 
   if (error) {
+    if (error.code === "23505" && submissionToken) {
+      const { data: existingByToken, error: tokenError } = await supabase
+        .from("places")
+        .select("id")
+        .eq("submission_token", submissionToken)
+        .maybeSingle();
+
+      if (tokenError) {
+        console.error("places token lookup after conflict failed", tokenError);
+        return NextResponse.json({ error: "勤務先の確認に失敗しました。" }, { status: 500 });
+      }
+
+      if (existingByToken) {
+        return NextResponse.json({ ok: true, id: existingByToken.id, existing: true });
+      }
+    }
+
     console.error("places insert failed", error);
     return NextResponse.json({ error: "勤務先の登録に失敗しました。" }, { status: 500 });
   }
-  return NextResponse.json({ id: data.id }, { status: 201 });
+
+  return NextResponse.json({ ok: true, id: data.id, existing: false }, { status: 201 });
 }

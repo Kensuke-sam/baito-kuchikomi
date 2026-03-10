@@ -35,7 +35,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .eq("id", id)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (existingError) {
+    console.error("official response lookup failed", existingError);
+    return NextResponse.json({ error: "当事者コメントの確認に失敗しました。" }, { status: 500 });
+  }
   if (!existingResponse) {
     return NextResponse.json({ error: "対象の当事者コメントが見つかりません。" }, { status: 404 });
   }
@@ -45,7 +48,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .update({ status: parsed.data.status })
     .eq("id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("official response update failed", error);
+    return NextResponse.json({ error: "当事者コメントの更新に失敗しました。" }, { status: 500 });
+  }
 
   const { error: auditError } = await admin.from("audit_logs").insert({
     admin_id:    auth.user.id,
@@ -55,7 +61,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
 
   if (auditError) {
-    return NextResponse.json({ error: "監査ログの記録に失敗しました。" }, { status: 500 });
+    console.error("audit log insert failed (official_response)", auditError);
   }
 
   return NextResponse.json({ ok: true });

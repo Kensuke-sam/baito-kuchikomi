@@ -39,7 +39,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .eq("id", id)
     .maybeSingle();
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (existingError) {
+    console.error("review lookup failed", existingError);
+    return NextResponse.json({ error: "体験談の確認に失敗しました。" }, { status: 500 });
+  }
   if (!existingReview) {
     return NextResponse.json({ error: "対象の体験談が見つかりません。" }, { status: 404 });
   }
@@ -49,7 +52,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .update({ status: parsed.data.status })
     .eq("id", id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("review update failed", error);
+    return NextResponse.json({ error: "体験談の更新に失敗しました。" }, { status: 500 });
+  }
 
   const adminNotes = parsed.data.admin_notes ? sanitizeText(parsed.data.admin_notes).slice(0, 500) : null;
 
@@ -63,7 +69,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
 
   if (auditError) {
-    return NextResponse.json({ error: "監査ログの記録に失敗しました。" }, { status: 500 });
+    console.error("audit log insert failed (review)", auditError);
   }
 
   return NextResponse.json({ ok: true });

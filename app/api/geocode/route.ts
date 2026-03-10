@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getRealIp, rateLimit } from "@/lib/rateLimit";
+import { createRateLimitHeaders, getRealIp, rateLimit } from "@/lib/rateLimit";
 import { sanitizeShortText } from "@/lib/sanitize";
 import { getSiteUrl } from "@/lib/siteUrl";
 
@@ -15,6 +15,7 @@ type GeocodeResult =
   | { ok: false; error: string };
 
 const NOT_FOUND_ERROR = "住所を地図上で特定できませんでした。もう少し詳しく入力してください。";
+const NOMINATIM_MIN_INTERVAL_MS = 1000;
 
 function notFound(): GeocodeResult {
   return {
@@ -67,6 +68,10 @@ function buildQueryCandidates(address: string) {
 
 function isNotFoundResult(result: GeocodeResult) {
   return !result.ok && result.error === NOT_FOUND_ERROR;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function geocodeWithMapbox(query: string, token: string): Promise<GeocodeResult | null> {
@@ -144,8 +149,17 @@ async function geocodeWithNominatimOnce(query: string): Promise<GeocodeResult> {
 
 async function geocodeWithNominatim(query: string): Promise<GeocodeResult> {
   const candidates = buildQueryCandidates(query);
+  let lastRequestStartedAt = 0;
 
   for (const candidate of candidates) {
+    if (lastRequestStartedAt > 0) {
+      const waitMs = NOMINATIM_MIN_INTERVAL_MS - (Date.now() - lastRequestStartedAt);
+      if (waitMs > 0) {
+        await sleep(waitMs);
+      }
+    }
+
+    lastRequestStartedAt = Date.now();
     const result = await geocodeWithNominatimOnce(candidate);
     if (result.ok) {
       return result;
@@ -161,12 +175,12 @@ async function geocodeWithNominatim(query: string): Promise<GeocodeResult> {
 
 export async function POST(req: Request) {
   const ip = getRealIp(req);
-  const { allowed } = rateLimit(`geocode:${ip}`, 12, 10 * 60 * 1000);
+  const rate = await rateLimit(`geocode:${ip}`, 12, 10 * 60 * 1000);
 
-  if (!allowed) {
+  if (!rate.allowed) {
     return NextResponse.json(
       { error: "住所確認が混み合っています。少し待ってから再試行してください。" },
-      { status: 429 }
+      { status: 429, headers: createRateLimitHeaders(rate) }
     );
   }
 
@@ -189,7 +203,12 @@ export async function POST(req: Request) {
   if (token) {
     const mapboxResult = await geocodeWithMapbox(query, token);
     if (mapboxResult?.ok) {
-      return NextResponse.json({ lat: mapboxResult.lat, lng: mapboxResult.lng, provider: mapboxResult.provider });
+      return NextResponse.json({
+        ok: true,
+        lat: mapboxResult.lat,
+        lng: mapboxResult.lng,
+        provider: mapboxResult.provider,
+      });
     }
   }
 
@@ -198,5 +217,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: fallbackResult.error }, { status: 422 });
   }
 
-  return NextResponse.json({ lat: fallbackResult.lat, lng: fallbackResult.lng, provider: fallbackResult.provider });
+  return NextResponse.json({
+    ok: true,
+    lat: fallbackResult.lat,
+    lng: fallbackResult.lng,
+    provider: fallbackResult.provider,
+  });
 }
