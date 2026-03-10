@@ -25,6 +25,8 @@
 # misc
 .DS_Store
 .claude/
+*\ 2.ts
+*\ 2.tsx
 *.pem
 supabase/.temp/
 
