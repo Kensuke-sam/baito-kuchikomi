@@ -101,7 +101,7 @@ lib/
   guides.ts               ガイドデータ
   hubs.ts                 jobs / areas / apps データ
   partnerLinks.ts         提携リンクの切り替え
-  siteConfig.ts           投稿対象エリア設定
+  siteConfig.ts           投稿対象エリア判定
   supabase/               Supabase クライアント
 supabase/migrations/      スキーマ
 ```
@@ -134,15 +134,8 @@ cp .env.example .env.local
 
 ### 投稿対象エリア
 
-未設定時は、日本の主要地域と離島を含む内蔵領域判定を使います。
-4項目をすべて設定した場合だけ、独自の矩形範囲へ上書きします。
-
-| 変数名 | 既定値 |
-|---|---|
-| `NEXT_PUBLIC_ALLOWED_MIN_LAT` | 未設定 |
-| `NEXT_PUBLIC_ALLOWED_MAX_LAT` | 未設定 |
-| `NEXT_PUBLIC_ALLOWED_MIN_LNG` | 未設定 |
-| `NEXT_PUBLIC_ALLOWED_MAX_LNG` | 未設定 |
+投稿対象は日本国内で固定です。
+判定は `lib/siteConfig.ts` に持たせており、環境変数では上書きしません。
 
 ### 提携リンク
 
