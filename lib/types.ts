@@ -21,6 +21,7 @@ export interface Review {
   title: string;
   body: string;
   tags: string[];
+  helpful_count?: number;
   period_from?: string;
   period_to?: string;
   status: ContentStatus;

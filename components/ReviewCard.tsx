@@ -1,5 +1,6 @@
 import type { Review } from "@/lib/types";
 import Link from "next/link";
+import { ReviewHelpfulButton } from "@/components/ReviewHelpfulButton";
 
 interface Props {
   review: Review;
@@ -40,6 +41,9 @@ export function ReviewCard({ review, placeId }: Props) {
       )}
 
       <div className="mt-4 flex items-center gap-3">
+        {typeof review.helpful_count === "number" && (
+          <ReviewHelpfulButton reviewId={review.id} initialCount={review.helpful_count} />
+        )}
         <ReportButtonInline reviewId={review.id} />
         {placeId && (
           <Link

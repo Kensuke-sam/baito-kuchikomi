@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { HubCard } from "@/components/HubCard";
+import Map from "@/components/Map";
 import { ReviewCard } from "@/components/ReviewCard";
 import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
@@ -227,6 +228,27 @@ export default async function PlaceDetailPage({ params }: Props) {
           当事者コメントを送る →
         </Link>
       </div>
+
+      <section className="mt-8 section-frame map-frame p-3 sm:p-4">
+        <div className="glass-panel mb-3 flex flex-wrap items-end justify-between gap-3 rounded-[24px] px-4 py-3 text-sm text-[var(--page-muted)]">
+          <div>
+            <span className="eyebrow">地図で確認</span>
+            <h2 className="mt-2 text-lg font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
+              この勤務先の場所
+            </h2>
+            <p className="mt-1 text-xs leading-6 sm:text-sm">
+              住所と投稿先を見返しやすいよう、ページ下部にも地図を表示しています。
+            </p>
+          </div>
+          <div className="soft-pill">
+            {p.nearest_station ? `最寄り駅 ${p.nearest_station}` : "勤務先の位置"}
+          </div>
+        </div>
+
+        <div className="h-[320px] overflow-hidden rounded-[28px]">
+          <Map places={[p]} />
+        </div>
+      </section>
     </main>
   );
 }
