@@ -197,11 +197,10 @@ export async function POST(req: Request) {
   }
 
   const address = sanitizeShortText(parsed.data.address, 200);
-  const query = address;
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim();
 
   if (token) {
-    const mapboxResult = await geocodeWithMapbox(query, token);
+    const mapboxResult = await geocodeWithMapbox(address, token);
     if (mapboxResult?.ok) {
       return NextResponse.json({
         ok: true,
@@ -212,7 +211,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const fallbackResult = await geocodeWithNominatim(query);
+  const fallbackResult = await geocodeWithNominatim(address);
   if (!fallbackResult.ok) {
     return NextResponse.json({ error: fallbackResult.error }, { status: 422 });
   }

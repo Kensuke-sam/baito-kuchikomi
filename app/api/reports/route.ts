@@ -15,6 +15,8 @@ const schema = z.object({
   detail:      z.string().max(1000).optional(),
 });
 
+const AUTO_HIDE_THRESHOLD = 3;
+
 export async function POST(req: Request) {
   const ip = getRealIp(req);
   const rate = await rateLimit(`reports:${ip}`, 10, 10 * 60 * 1000);
@@ -101,7 +103,6 @@ export async function POST(req: Request) {
   }
 
   // 通報件数を確認して自動非表示の発動を通知に含める
-  const AUTO_HIDE_THRESHOLD = 3;
   const { count, error: reportCountError } = await supabase
     .from("reports")
     .select("*", { count: "exact", head: true })
