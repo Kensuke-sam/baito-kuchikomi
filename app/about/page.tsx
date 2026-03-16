@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: "サイトについて",
   description:
     "バイト体験談マップの目的、公開基準、対応窓口をまとめたサイト案内ページです。",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "サイトについて",
+    description: "バイト体験談マップの目的、公開基準、対応窓口をまとめたサイト案内ページです。",
+    url: "/about",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 const sections = [

@@ -259,7 +259,7 @@ const jobHubs: HubEntry[] = [
         ],
       },
     ],
-    relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata"],
+    relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata", "baito-sokujitsu-yameru"],
   },
   {
     kind: "jobs",
@@ -313,7 +313,7 @@ const jobHubs: HubEntry[] = [
         ],
       },
     ],
-    relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "baito-yametai-daigakusei"],
+    relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "baito-yametai-daigakusei", "kyuryo-miharai-taisho-daigakusei"],
   },
   {
     kind: "jobs",
@@ -778,7 +778,7 @@ const appHubs: HubEntry[] = [
         ],
       },
     ],
-    relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku"],
+    relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku", "baito-sokujitsu-yameru"],
   },
   {
     kind: "apps",

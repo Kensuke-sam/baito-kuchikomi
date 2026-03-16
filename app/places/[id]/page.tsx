@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { HubCard } from "@/components/HubCard";
 import Map from "@/components/Map";
@@ -26,9 +27,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!place) return { title: "勤務先が見つかりません" };
 
+  const pageUrl = `${getSiteUrl()}/places/${id}`;
+  const title = `${place.name} の体験談 | バイト体験談マップ`;
+  const description = `${place.name}（${place.address}）のアルバイト体験談・口コミ一覧`;
+
   return {
-    title: `${place.name} の体験談 | バイト体験談マップ`,
-    description: `${place.name}（${place.address}）のアルバイト体験談・口コミ一覧`,
+    title,
+    description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "article",
+    },
   };
 }
 

@@ -14,6 +14,14 @@ import { REVIEW_TAGS } from "@/lib/types";
 export const metadata: Metadata = {
   title: "体験談一覧",
   description: "勤務先名・住所・タグで承認済みのバイト体験談を横断検索できる一覧ページです。",
+  alternates: { canonical: "/list" },
+  openGraph: {
+    title: "体験談一覧",
+    description: "勤務先名・住所・タグで承認済みのバイト体験談を横断検索できる一覧ページです。",
+    url: "/list",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 const PER_PAGE = 20;
