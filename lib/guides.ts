@@ -22,6 +22,8 @@ export interface GuideLink {
 export interface GuideEntry {
   slug: string;
   category: "辞めたい" | "見分け方" | "単発";
+  /** トップページ・ガイド一覧の「注目ガイド」に掲載するか */
+  featured?: boolean;
   title: string;
   description: string;
   excerpt: string;
@@ -40,6 +42,7 @@ const guides: GuideEntry[] = [
   {
     slug: "baito-yametai-daigakusei",
     category: "辞めたい",
+    featured: true,
     title: "バイトを辞めたい大学生へ 角が立ちにくい伝え方テンプレと次の動き方",
     description:
       "大学生がアルバイトを辞めたいと感じたときに、伝え方、即日で辞めたいときの注意点、次の収入を切らさないための動き方を整理した実践ガイドです。",
@@ -121,6 +124,7 @@ const guides: GuideEntry[] = [
   {
     slug: "black-baito-miwakekata",
     category: "見分け方",
+    featured: true,
     title: "ブラックバイトを見分ける10のサイン 求人票・面接・初日で見るポイント",
     description:
       "ブラックバイトに近い職場を避けるために、求人票、面接、初日、働き始めた後のサインを分けて整理したチェックガイドです。",
@@ -202,6 +206,7 @@ const guides: GuideEntry[] = [
   {
     slug: "tanpatsu-baito-app-hikaku",
     category: "単発",
+    featured: true,
     title: "単発バイトアプリ比較 大学生が『すぐ働く』『失敗を減らす』ための選び方",
     description:
       "大学生が単発バイトアプリを選ぶときに見るべき点を、即日性、仕事内容、働きやすさ、安全性の観点から整理した比較ガイドです。",
@@ -279,7 +284,7 @@ const guides: GuideEntry[] = [
       body: "つなぎの後に本命を探す動きまで作っておくと、また同じ悩みに戻りにくくなります。",
       partnerKey: "partTimeJobs",
     },
-    relatedSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata"],
+    relatedSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata", "baito-sokujitsu-yameru"],
   },
   {
     slug: "kyuryo-miharai-taisho-daigakusei",
@@ -456,7 +461,8 @@ export function getGuideBySlug(slug: string): GuideEntry | undefined {
 }
 
 export function getFeaturedGuides(limit = 3): GuideEntry[] {
-  return guides.slice(0, limit);
+  const featured = guides.filter((g) => g.featured);
+  return featured.length > 0 ? featured.slice(0, limit) : guides.slice(0, limit);
 }
 
 export function getRelatedGuides(slugs: string[]): GuideEntry[] {
