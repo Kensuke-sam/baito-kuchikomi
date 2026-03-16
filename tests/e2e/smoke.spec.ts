@@ -17,8 +17,8 @@ for (const route of guideDetailRoutes) {
     await expect(page).toHaveTitle(route.title);
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("article")).toBeVisible();
-    // パンくずに「バイトの悩みガイド」が表示されているか
-    await expect(page.getByRole("navigation").first()).toContainText("バイトの悩みガイド");
+    // パンくずに「バイトの悩みガイド」が表示されているか（main 内の nav を対象にする）
+    await expect(page.getByRole("main").getByText("バイトの悩みガイド").first()).toBeVisible();
   });
 }
 

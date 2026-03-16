@@ -9,6 +9,14 @@ export const metadata: Metadata = {
   title: "バイトの悩みガイド",
   description:
     "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
+  alternates: { canonical: "/guides" },
+  openGraph: {
+    title: "バイトの悩みガイド",
+    description: "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
+    url: "/guides",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function GuidesPage() {

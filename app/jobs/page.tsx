@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   title: "職種別バイトガイド",
   description:
     "コンビニ、居酒屋、カフェ、倉庫、スーパーなど、大学生が職種ごとのきつさや向き不向きを比べるためのハブです。",
+  alternates: { canonical: "/jobs" },
+  openGraph: {
+    title: "職種別バイトガイド",
+    description: "コンビニ、居酒屋、カフェ、倉庫、スーパーなど、大学生が職種ごとのきつさや向き不向きを比べるためのハブです。",
+    url: "/jobs",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function JobsPage() {

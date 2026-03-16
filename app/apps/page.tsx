@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   title: "アプリ・求人サービス比較",
   description:
     "タイミー系、シェアフル系、総合求人系など、大学生がバイト探しで使うサービスの見方をまとめたハブです。",
+  alternates: { canonical: "/apps" },
+  openGraph: {
+    title: "アプリ・求人サービス比較",
+    description: "タイミー系、シェアフル系、総合求人系など、大学生がバイト探しで使うサービスの見方をまとめたハブです。",
+    url: "/apps",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function AppsPage() {

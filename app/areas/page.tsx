@@ -7,6 +7,14 @@ export const metadata: Metadata = {
   title: "地域別バイトガイド",
   description:
     "東京、大阪、名古屋、福岡など、大学生が地域ごとにバイトを比較するときの見方をまとめたハブです。",
+  alternates: { canonical: "/areas" },
+  openGraph: {
+    title: "地域別バイトガイド",
+    description: "東京、大阪、名古屋、福岡など、大学生が地域ごとにバイトを比較するときの見方をまとめたハブです。",
+    url: "/areas",
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function AreasPage() {
