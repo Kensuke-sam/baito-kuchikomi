@@ -65,8 +65,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("status", "approved");
 
   if (error) {
+    // Supabase 障害時でもガイド・ハブのサイトマップだけは返す
     console.error("sitemap places fetch failed", error);
-    throw new Error("Failed to generate place sitemap entries.");
+    return [...staticEntries, ...guideEntries, ...hubEntries];
   }
 
   const placeEntries: MetadataRoute.Sitemap = (places ?? []).map((place) => ({
