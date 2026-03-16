@@ -1,5 +1,49 @@
 import { expect, test } from "@playwright/test";
 
+// ガイド詳細ページのスモークテスト
+const guideDetailRoutes = [
+  { slug: "baito-yametai-daigakusei",            title: /バイトを辞めたい大学生へ/ },
+  { slug: "black-baito-miwakekata",              title: /ブラックバイトを見分ける/ },
+  { slug: "tanpatsu-baito-app-hikaku",           title: /単発バイトアプリ比較/ },
+  { slug: "kyuryo-miharai-taisho-daigakusei",   title: /給料が払われないとき/ },
+  { slug: "baito-sokujitsu-yameru",              title: /即日・今すぐ辞めたい/ },
+] satisfies ReadonlyArray<{ slug: string; title: RegExp }>;
+
+for (const route of guideDetailRoutes) {
+  test(`/guides/${route.slug} renders correctly`, async ({ page }) => {
+    const response = await page.goto(`/guides/${route.slug}`, { waitUntil: "domcontentloaded" });
+
+    expect(response?.ok()).toBeTruthy();
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("article")).toBeVisible();
+    // パンくずに「バイトの悩みガイド」が表示されているか
+    await expect(page.getByRole("navigation").first()).toContainText("バイトの悩みガイド");
+  });
+}
+
+// ハブ詳細ページのスモークテスト（各 kind から 1 件ずつサンプル）
+const hubDetailRoutes = [
+  { path: "/jobs/konbini",   title: /コンビニ/ },
+  { path: "/jobs/famiresu",  title: /ファミレス/ },
+  { path: "/jobs/hikkoshi",  title: /引越し/ },
+  { path: "/areas/tokyo",    title: /東京/ },
+  { path: "/areas/yokohama", title: /横浜/ },
+  { path: "/areas/sapporo",  title: /札幌/ },
+  { path: "/apps/timee",     title: /タイミー/ },
+  { path: "/apps/indeed",    title: /Indeed/ },
+] satisfies ReadonlyArray<{ path: string; title: RegExp }>;
+
+for (const route of hubDetailRoutes) {
+  test(`${route.path} renders correctly`, async ({ page }) => {
+    const response = await page.goto(route.path, { waitUntil: "domcontentloaded" });
+
+    expect(response?.ok()).toBeTruthy();
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.getByRole("main")).toBeVisible();
+  });
+}
+
 const smokeRoutes = [
   { path: "/", title: /^バイト体験談マップ$/ },
   { path: "/guides", title: /^バイトの悩みガイド \| バイト体験談マップ$/ },

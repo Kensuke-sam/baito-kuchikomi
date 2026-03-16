@@ -62,6 +62,7 @@ export default async function GuideDetailPage({ params }: Props) {
     "baito-yametai-daigakusei": "/images/guide-yametai.png",
     "black-baito-miwakekata": "/images/guide-miwakekata.png",
     "tanpatsu-baito-app-hikaku": "/images/guide-tanpatsu.png",
+    // 新規記事はバナー画像未制作のため非表示（bannerSrc が falsy なら画像ブロック自体がレンダリングされない）
   };
   const bannerSrc = guideBanners[guide.slug];
 
