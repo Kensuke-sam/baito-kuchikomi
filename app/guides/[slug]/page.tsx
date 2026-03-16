@@ -29,14 +29,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guide = getGuideBySlug(slug);
 
   if (!guide) {
-    return {
-      title: "記事が見つかりません",
-    };
+    return { title: "記事が見つかりません" };
   }
+
+  const pageUrl = `${getSiteUrl()}/guides/${guide.slug}`;
 
   return {
     title: guide.title,
     description: guide.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: guide.title,
+      description: guide.description,
+      url: pageUrl,
+      type: "article",
+      publishedTime: guide.publishedAt,
+      modifiedTime: guide.updatedAt,
+      locale: "ja_JP",
+    },
   };
 }
 

@@ -24,9 +24,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!hub) return { title: "ページが見つかりません" };
 
+  const pageUrl = `${getSiteUrl()}/jobs/${hub.slug}`;
+
   return {
     title: hub.title,
     description: hub.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: hub.title,
+      description: hub.description,
+      url: pageUrl,
+      type: "article",
+      locale: "ja_JP",
+    },
   };
 }
 

@@ -22,7 +22,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const hub = getAppHubBySlug(slug);
   if (!hub) return { title: "ページが見つかりません" };
-  return { title: hub.title, description: hub.description };
+
+  const pageUrl = `${getSiteUrl()}/apps/${hub.slug}`;
+
+  return {
+    title: hub.title,
+    description: hub.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: hub.title,
+      description: hub.description,
+      url: pageUrl,
+      type: "article",
+      locale: "ja_JP",
+    },
+  };
 }
 
 export default async function AppDetailPage({ params }: Props) {
