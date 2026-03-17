@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import type { Place } from "@/lib/types";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
@@ -8,6 +9,10 @@ import { HubCard } from "@/components/HubCard";
 import Map from "@/components/Map";
 import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const supabase = await createClient();

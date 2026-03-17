@@ -14,6 +14,7 @@ import {
 } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import { isExternalHref } from "@/lib/partnerLinks";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 interface Props {
@@ -95,30 +96,11 @@ export default async function GuideDetailPage({ params }: Props) {
     },
   };
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "ホーム",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "バイトの悩みガイド",
-        item: `${siteUrl}/guides`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: guide.title,
-        item: articleUrl,
-      },
-    ],
-  };
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "バイトの悩みガイド", path: "/guides" },
+    { name: guide.title, url: articleUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-5xl px-4 py-8 sm:py-10">

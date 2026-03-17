@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "利用規約・免責事項",
   description: "バイト体験談マップの利用規約、免責事項、ログ保存、削除申請対応の方針です。",
+  alternates: { canonical: "/terms" },
 };
 
 const sections = [

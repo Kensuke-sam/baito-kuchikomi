@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { HubCard } from "@/components/HubCard";
@@ -66,9 +67,21 @@ export default async function PlaceDetailPage({ params }: Props) {
   if (!place) return notFound();
 
   const p: Place = place;
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/places/${p.id}`;
+
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "体験談一覧", path: "/list" },
+    { name: `${p.name} の体験談`, url: pageUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-3xl px-3 py-8 sm:px-4 sm:py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
+      />
       {/* 勤務先情報 */}
       <div className="section-frame p-5 sm:p-6 mb-6">
         <span className="eyebrow">勤務先詳細</span>

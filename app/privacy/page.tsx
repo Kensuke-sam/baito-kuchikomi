@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
   description: "バイト体験談マップにおける個人情報・ログ・広告計測の取り扱い方針です。",
+  alternates: { canonical: "/privacy" },
 };
 
 const sections = [

@@ -8,6 +8,7 @@ import { PromotionNotice } from "@/components/PromotionNotice";
 import { getRelatedGuides } from "@/lib/guides";
 import { getAreaHubBySlug, getAreaHubs, getHubPath, getSiblingHubs } from "@/lib/hubs";
 import { getPartnerLink, isExternalHref } from "@/lib/partnerLinks";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 interface Props {
@@ -51,15 +52,11 @@ export default async function AreaDetailPage({ params }: Props) {
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${getHubPath(hub)}`;
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "ホーム", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "地域別バイトガイド", item: `${siteUrl}/areas` },
-      { "@type": "ListItem", position: 3, name: hub.title, item: pageUrl },
-    ],
-  };
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "地域別バイトガイド", path: "/areas" },
+    { name: hub.title, url: pageUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-5xl px-4 py-8 sm:py-10">
