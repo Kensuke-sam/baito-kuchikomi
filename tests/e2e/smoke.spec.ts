@@ -7,6 +7,10 @@ const guideDetailRoutes = [
   { slug: "tanpatsu-baito-app-hikaku",           title: /単発バイトアプリ比較/ },
   { slug: "kyuryo-miharai-taisho-daigakusei",   title: /給料が払われないとき/ },
   { slug: "baito-sokujitsu-yameru",              title: /即日・今すぐ辞めたい/ },
+  { slug: "baito-shift-kotowarikata",            title: /シフトを断る/ },
+  { slug: "baito-tobimasu-taisho",               title: /飛びたい/ },
+  { slug: "baito-mensetsu-miwakekata",           title: /面接でブラック/ },
+  { slug: "baito-mochikae",                      title: /掛け持ち/ },
 ] satisfies ReadonlyArray<{ slug: string; title: RegExp }>;
 
 for (const route of guideDetailRoutes) {
@@ -24,14 +28,23 @@ for (const route of guideDetailRoutes) {
 
 // ハブ詳細ページのスモークテスト（各 kind から 1 件ずつサンプル）
 const hubDetailRoutes = [
-  { path: "/jobs/konbini",   title: /コンビニ/ },
-  { path: "/jobs/famiresu",  title: /ファミレス/ },
-  { path: "/jobs/hikkoshi",  title: /引越し/ },
-  { path: "/areas/tokyo",    title: /東京/ },
-  { path: "/areas/yokohama", title: /横浜/ },
-  { path: "/areas/sapporo",  title: /札幌/ },
-  { path: "/apps/timee",     title: /タイミー/ },
-  { path: "/apps/indeed",    title: /Indeed/ },
+  { path: "/jobs/konbini",       title: /コンビニ/ },
+  { path: "/jobs/famiresu",      title: /ファミレス/ },
+  { path: "/jobs/hikkoshi",      title: /引越し/ },
+  { path: "/jobs/drugstore",     title: /ドラッグストア/ },
+  { path: "/jobs/fast-food",     title: /ファストフード/ },
+  { path: "/jobs/gas-station",   title: /ガソリンスタンド/ },
+  { path: "/jobs/hotel",         title: /ホテル/ },
+  { path: "/areas/tokyo",        title: /東京/ },
+  { path: "/areas/yokohama",     title: /横浜/ },
+  { path: "/areas/sapporo",      title: /札幌/ },
+  { path: "/areas/kyoto",        title: /京都/ },
+  { path: "/areas/sendai",       title: /仙台/ },
+  { path: "/areas/hiroshima",    title: /広島/ },
+  { path: "/apps/timee",         title: /タイミー/ },
+  { path: "/apps/indeed",        title: /Indeed/ },
+  { path: "/apps/mynavi-baito",  title: /マイナビバイト/ },
+  { path: "/apps/suguwork",      title: /スグワーク/ },
 ] satisfies ReadonlyArray<{ path: string; title: RegExp }>;
 
 for (const route of hubDetailRoutes) {
