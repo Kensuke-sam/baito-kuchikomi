@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cache } from "react";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { buildBreadcrumbSchema } from "@/lib/schema";
@@ -12,19 +13,25 @@ import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import type { Place, Review, OfficialResponse } from "@/lib/types";
 
+/** 同一リクエスト内で place を1回だけクエリする */
+const getPlace = cache(async (id: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("places")
+    .select("name, address")
+    .eq("id", id)
+    .eq("status", "approved")
+    .single();
+  return data;
+});
+
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: place } = await supabase
-    .from("places")
-    .select("name, address")
-    .eq("id", id)
-    .eq("status", "approved")
-    .single();
+  const place = await getPlace(id);
 
   if (!place) return { title: "勤務先が見つかりません" };
 

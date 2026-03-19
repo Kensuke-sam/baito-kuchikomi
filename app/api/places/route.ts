@@ -15,13 +15,19 @@ const schema = z.object({
   submission_token: z.string().uuid().optional(),
 });
 
-export async function GET() {
+const PLACES_PAGE_LIMIT = 500;
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const page = Math.max(0, Number(searchParams.get("page") ?? 0));
+
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("places")
     .select("id,name,address,nearest_station,lat,lng,area_tag,status,created_at")
     .eq("status", "approved")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(page * PLACES_PAGE_LIMIT, (page + 1) * PLACES_PAGE_LIMIT - 1);
 
   if (error) {
     console.error("places select failed", error);

@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const hubEntries: MetadataRoute.Sitemap = getAllHubs().map((hub) => ({
     url: `${siteUrl}${getHubPath(hub)}`,
-    lastModified: now,
+    lastModified: new Date(hub.updatedAt),
     changeFrequency: "weekly",
     priority: 0.8,
   }));

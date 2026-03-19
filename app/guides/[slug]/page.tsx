@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionSpotlight } from "@/components/ActionSpotlight";
-import { GuideCard } from "@/components/GuideCard";
 import { HubCard } from "@/components/HubCard";
 import { PromotionNotice } from "@/components/PromotionNotice";
 import {
@@ -113,16 +112,16 @@ export default async function GuideDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">
           ホーム
         </Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/guides" className="hover:text-[var(--page-ink)]">
           バイトの悩みガイド
         </Link>
-        <span>/</span>
-        <span>{guide.category}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{guide.title}</span>
       </nav>
 
       <article className="section-frame overflow-hidden">
@@ -246,25 +245,6 @@ export default async function GuideDetailPage({ params }: Props) {
         </div>
         </div>
       </article>
-
-      <section className="mt-8">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <span className="eyebrow">次に読む</span>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
-              関連ガイド
-            </h2>
-          </div>
-          <Link href="/guides" className="secondary-button text-sm">
-            一覧へ戻る
-          </Link>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {relatedGuides.map((relatedGuide) => (
-            <GuideCard key={relatedGuide.slug} guide={relatedGuide} />
-          ))}
-        </div>
-      </section>
 
       <section className="mt-8 grid gap-4 xl:grid-cols-3">
         <section className="section-frame p-6 sm:p-7">

@@ -15,7 +15,9 @@ export function ReviewCard({ review, placeId }: Props) {
           {review.title}
         </h3>
         <span className="shrink-0 text-xs font-medium text-[var(--page-muted)]">
-          {review.created_at.slice(0, 10)}
+          <time dateTime={review.created_at.slice(0, 10)}>
+            {new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Tokyo" }).format(new Date(review.created_at))}
+          </time>
         </span>
       </div>
 

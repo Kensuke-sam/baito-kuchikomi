@@ -27,6 +27,14 @@ type RateLimitRpcPayload = {
   retry_after?: number;
 };
 
+/**
+ * NOTE: 以下のグローバル変数はプロセス内で共有される。
+ * Next.js の長時間稼働サーバー（自ホスト）では正しく機能するが、
+ * Vercel などのサーバーレス環境ではリクエストごとにプロセスが起動し直す場合があるため、
+ * クールダウンやインメモリストアがリセットされることがある。
+ * 本番環境では Supabase RPC でのレート制限（check_and_record_rate_limit）を
+ * 主系とし、インメモリはあくまでフォールバックとして扱う。
+ */
 const store = new Map<string, RateLimitEntry>();
 const MAX_STORE_SIZE = 10000;
 const RPC_RETRY_COOLDOWN_MS = 60_000;

@@ -4,20 +4,24 @@ import { GuideCard } from "@/components/GuideCard";
 import { getAllGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import { HubCard } from "@/components/HubCard";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-export const metadata: Metadata = {
-  title: "バイトの悩みガイド",
-  description:
-    "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
-  alternates: { canonical: "/guides" },
-  openGraph: {
+export function generateMetadata(): Metadata {
+  const pageUrl = `${getSiteUrl()}/guides`;
+  return {
     title: "バイトの悩みガイド",
-    description: "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
-    url: "/guides",
-    locale: "ja_JP",
-    type: "website",
-  },
-};
+    description:
+      "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: "バイトの悩みガイド",
+      description: "辞めたい、きつい、ブラックバイトを見分けたい、単発で逃げたい人向けの実践ガイド一覧です。",
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "website",
+    },
+  };
+}
 
 export default function GuidesPage() {
   const guides = getAllGuides();

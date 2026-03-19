@@ -65,12 +65,12 @@ export default async function AreaDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">ホーム</Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/areas" className="hover:text-[var(--page-ink)]">地域別バイトガイド</Link>
-        <span>/</span>
-        <span>{hub.shortTitle}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{hub.shortTitle}</span>
       </nav>
 
       <article className="section-frame p-6 sm:p-8">

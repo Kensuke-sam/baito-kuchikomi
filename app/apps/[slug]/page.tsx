@@ -65,12 +65,12 @@ export default async function AppDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">ホーム</Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/apps" className="hover:text-[var(--page-ink)]">アプリ・求人サービス比較</Link>
-        <span>/</span>
-        <span>{hub.shortTitle}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{hub.shortTitle}</span>
       </nav>
 
       <article className="section-frame p-6 sm:p-8">

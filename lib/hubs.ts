@@ -23,6 +23,8 @@ export interface HubEntry {
   highlights: string[];
   sections: HubSection[];
   relatedGuideSlugs: string[];
+  /** YYYY-MM-DD 形式。sitemap の lastModified に使用。 */
+  updatedAt: string;
 }
 
 const jobHubs: HubEntry[] = [
@@ -78,6 +80,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata", "baito-sokujitsu-yameru"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -124,6 +127,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-yametai-daigakusei", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -165,6 +169,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -206,6 +211,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "black-baito-miwakekata", "kyuryo-miharai-taisho-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -260,6 +266,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata", "baito-sokujitsu-yameru"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -314,6 +321,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "baito-yametai-daigakusei", "kyuryo-miharai-taisho-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -355,6 +363,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "jobs",
@@ -363,7 +372,18 @@ const jobHubs: HubEntry[] = [
     title: "ドラッグストアのバイトはきついのか 大学生が入る前に知るべき実態",
     description:
       "ドラッグストアでのアルバイトは、接客・レジ・品出しが主な業務です。大学生がよく聞く疑問と、向き不向きを整理したハブです。",
+    excerpt:
+      "覚えることは多めですが慣れるとルーティン化しやすく、接客ストレスはコンビニより低い傾向があります。",
+    intent: "ドラッグストアバイトへの応募を検討している、または現在働いて向き不向きを確認したい大学生向け",
+    eyebrow: "Job Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "ドラッグストア・小売系の求人を比較する",
+    ctaBody: "シフト融通と研修の丁寧さを軸に複数の候補を比べると、長続きしやすい職場が見つかります。",
+    highlights: [
+      "立ち仕事が多く体力がいる",
+      "コンビニより落ち着いた客層が多い",
+      "品出しや在庫管理など業務の幅がある",
+    ],
     sections: [
       {
         title: "ドラッグストアバイトの主な業務",
@@ -403,6 +423,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-mensetsu-miwakekata", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "jobs",
@@ -411,7 +432,18 @@ const jobHubs: HubEntry[] = [
     title: "ファストフードのバイトはきついのか 大学生が入る前に知る実態と選び方",
     description:
       "マクドナルドやモスバーガーなど、ファストフード店でのアルバイトの実態と、大学生が入る前に確認すべきポイントをまとめたハブです。",
+    excerpt:
+      "ピーク時間帯のスピード感が独特ですが、マニュアルが整備された大手なら未経験でも始めやすい職種です。",
+    intent: "ファストフードバイトを検討している、またはきつさの実態を知りたい大学生向け",
+    eyebrow: "Job Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "ファストフード・飲食系の求人を比較する",
+    ctaBody: "研修の丁寧さとシフト融通を確認してから選ぶと、最初の1〜2週間の消耗が減ります。",
+    highlights: [
+      "ピーク時は素早さが求められる",
+      "大手チェーンはマニュアルが整備されている",
+      "ホールとキッチンで業務内容が異なる",
+    ],
     sections: [
       {
         title: "ファストフードバイトの主な業務",
@@ -451,6 +483,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-mensetsu-miwakekata", "baito-sokujitsu-yameru"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "jobs",
@@ -459,7 +492,18 @@ const jobHubs: HubEntry[] = [
     title: "ガソリンスタンドのバイトはきついのか 大学生が選ぶ前に知っておくこと",
     description:
       "給油・洗車・オイル交換補助など、ガソリンスタンドバイトの業務内容と、大学生が入る前に確認すべきポイントをまとめたハブです。",
+    excerpt:
+      "屋外作業が基本で夏冬の体力消耗があるものの、慣れると流れが一定でルーティン化しやすい職種です。",
+    intent: "ガソリンスタンドバイトを検討している、またはきつさの実態を知りたい大学生向け",
+    eyebrow: "Job Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "ガソリンスタンド・屋外系の求人を比較する",
+    ctaBody: "フルサービス・セルフの区別と深夜シフトの有無を面接前に確認すると入ってからのギャップが減ります。",
+    highlights: [
+      "屋外立ち仕事で夏冬に体力消耗がある",
+      "フルとセルフで業務量が大きく異なる",
+      "慣れるとルーティンが固まりやすい",
+    ],
     sections: [
       {
         title: "ガソリンスタンドバイトの主な業務",
@@ -500,6 +544,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-yametai-daigakusei", "kyuryo-miharai-taisho-daigakusei"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "jobs",
@@ -508,7 +553,18 @@ const jobHubs: HubEntry[] = [
     title: "ホテル・旅館バイトの実態 大学生が選ぶ前に知っておきたいこと",
     description:
       "フロント・客室清掃・レストランサービスなど、ホテル・旅館でのアルバイトの業務内容と、大学生が入る前に確認すべき点をまとめたハブです。",
+    excerpt:
+      "接客マナーが身につきやすく就活に活かしやすい一方、フロントのクレーム対応は慣れるまで負荷が高い傾向があります。",
+    intent: "ホテル・旅館バイトを検討している、または接客スキルを身につけたい大学生向け",
+    eyebrow: "Job Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "ホテル・旅館系の求人を比較する",
+    ctaBody: "フロント・清掃・レストランのどの部門かで働き方が大きく変わります。部門と繁忙期の扱いを確認してから選びましょう。",
+    highlights: [
+      "ビジネスマナーが自然に身につく",
+      "部門（フロント・清掃等）で業務差が大きい",
+      "繁忙期は業務量が急増する",
+    ],
     sections: [
       {
         title: "ホテルバイトの主な種類と業務",
@@ -550,6 +606,7 @@ const jobHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-mensetsu-miwakekata", "black-baito-miwakekata", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-17",
   },
 ];
 
@@ -594,6 +651,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -635,6 +693,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -670,6 +729,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "black-baito-miwakekata"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -722,6 +782,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -770,6 +831,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -805,6 +867,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["baito-yametai-daigakusei", "black-baito-miwakekata"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "areas",
@@ -813,7 +876,18 @@ const areaHubs: HubEntry[] = [
     title: "京都で大学生がバイトを選ぶポイント 観光地・学生街のリアルな働き方",
     description:
       "観光地バイト・学生向けエリアのバイトが豊富な京都で、大学生がブラック求人を避けながら働く場所を選ぶための地域ハブです。",
+    excerpt:
+      "観光地エリアは時給高めですが繁忙期の波が激しく、学生街エリアは安定しやすく条件交渉もしやすい傾向があります。",
+    intent: "京都でバイトを探している大学生、または京都の求人環境を知りたい人向け",
+    eyebrow: "Area Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "京都エリアの求人を比較する",
+    ctaBody: "観光シーズンの波とシフト融通を確認してから選ぶと、収入が不安定になりにくいです。",
+    highlights: [
+      "観光地エリアは時給高め・繁忙期の波あり",
+      "学生街エリアは安定しやすい",
+      "路線バスの終電が早い路線もある",
+    ],
     sections: [
       {
         title: "京都のバイト市場の特徴",
@@ -853,6 +927,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-mensetsu-miwakekata", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "areas",
@@ -861,7 +936,18 @@ const areaHubs: HubEntry[] = [
     title: "仙台で大学生がバイトを探すポイント 学生街と繁華街のバイト事情",
     description:
       "東北最大の都市・仙台で、大学生がバイトを選ぶときに知っておくべき地域事情と、ブラック求人を避けるための地域ハブです。",
+    excerpt:
+      "東北最大の学生都市で求人は豊富ですが、繁華街の深夜シフトは終電との兼ね合いと冬場の通勤リスクを先に確認しましょう。",
+    intent: "仙台でバイトを探している大学生、または仙台の求人環境を知りたい人向け",
+    eyebrow: "Area Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "仙台エリアの求人を比較する",
+    ctaBody: "深夜シフトは終電と冬の路面状況を確認してから選ぶと、通勤トラブルが減ります。",
+    highlights: [
+      "学生需要が高く求人は豊富",
+      "深夜シフトは終電の確認が必要",
+      "冬場の降雪・凍結に備えた通勤計画が重要",
+    ],
     sections: [
       {
         title: "仙台のバイト市場の特徴",
@@ -901,6 +987,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-yametai-daigakusei", "tanpatsu-baito-app-hikaku"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "areas",
@@ -909,7 +996,18 @@ const areaHubs: HubEntry[] = [
     title: "広島で大学生がバイトを探すポイント 地域ごとの求人傾向と選び方",
     description:
       "広島市内・呉・尾道など、広島エリアで大学生がバイトを選ぶときに知っておくべき地域事情と、失敗しない求人選びをまとめたハブです。",
+    excerpt:
+      "路面電車が充実しており通勤しやすい一方、地域密着の小規模飲食店は口コミで職場雰囲気を確認してから入ることをおすすめします。",
+    intent: "広島でバイトを探している大学生、または広島の求人環境を知りたい人向け",
+    eyebrow: "Area Hub",
     partnerKey: "partTimeJobs",
+    ctaTitle: "広島エリアの求人を比較する",
+    ctaBody: "チェーン系から選ぶと研修が整っており、続けやすい環境が見つかりやすいです。",
+    highlights: [
+      "路面電車・バスでアクセスしやすい",
+      "地元密着型は事前に口コミ確認が重要",
+      "チェーン系なら研修が安定している",
+    ],
     sections: [
       {
         title: "広島のバイト市場の特徴",
@@ -949,6 +1047,7 @@ const areaHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-17",
   },
 ];
 
@@ -993,6 +1092,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "apps",
@@ -1028,6 +1128,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "black-baito-miwakekata"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "apps",
@@ -1063,6 +1164,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-yametai-daigakusei", "kyuryo-miharai-taisho-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "apps",
@@ -1118,6 +1220,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku", "baito-sokujitsu-yameru"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "apps",
@@ -1153,6 +1256,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "tanpatsu-baito-app-hikaku", "kyuryo-miharai-taisho-daigakusei"],
+    updatedAt: "2026-03-09",
   },
   {
     kind: "apps",
@@ -1161,6 +1265,9 @@ const appHubs: HubEntry[] = [
     title: "マイナビバイト系の求人を大学生が安全寄りに使うための見方",
     description:
       "マイナビバイトをはじめとする大手求人サービスを、大学生がブラック求人を避けながら使いこなすための比較・活用ハブです。",
+    excerpt:
+      "掲載数が多い分、比較軸（シフト融通・研修・時給）を持ったうえで絞り込むことで、ミスマッチを大幅に減らせます。",
+    intent: "マイナビバイト系サービスでバイトを探している、または長期バイトを安全に選びたい大学生向け",
     eyebrow: "App Hub",
     partnerKey: "partTimeJobs",
     ctaTitle: "条件が見えやすい求人候補を比較する",
@@ -1209,6 +1316,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["black-baito-miwakekata", "baito-mensetsu-miwakekata", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-17",
   },
   {
     kind: "apps",
@@ -1217,6 +1325,9 @@ const appHubs: HubEntry[] = [
     title: "スグワーク系の単発アプリを大学生が使う前に知っておくこと",
     description:
       "スグワークなど即日・短期案件に特化した単発バイトアプリを、大学生がリスクなく使いこなすための比較・活用ハブです。",
+    excerpt:
+      "当日・翌日から始められる案件が豊富で、固定バイトのサブや辞めた後のつなぎ収入として特に活用しやすいサービスです。",
+    intent: "即日・単発で働きたい、またはバイトを辞めた後のつなぎ収入を探している大学生向け",
     eyebrow: "App Hub",
     partnerKey: "singleDayJobs",
     ctaTitle: "今週分の収入をつなぐ単発候補を確認する",
@@ -1265,6 +1376,7 @@ const appHubs: HubEntry[] = [
       },
     ],
     relatedGuideSlugs: ["tanpatsu-baito-app-hikaku", "baito-sokujitsu-yameru", "baito-yametai-daigakusei"],
+    updatedAt: "2026-03-17",
   },
 ];
 
