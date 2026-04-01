@@ -6,7 +6,7 @@ import { sanitizeShortText, sanitizeText } from "@/lib/sanitize";
 import { REVIEW_TAGS } from "@/lib/types";
 import { randomBytes } from "crypto";
 
-const VALID_TAGS = REVIEW_TAGS as unknown as string[];
+const VALID_TAG_SET = new Set<string>(REVIEW_TAGS);
 
 const schema = z.object({
   place_id:    z.string().uuid(),
@@ -14,7 +14,7 @@ const schema = z.object({
   body:        z.string().min(50).max(3000),
   submission_token: z.string().uuid().optional(),
   tags:        z.array(z.string()).max(8).refine(
-    (arr) => arr.every((t) => VALID_TAGS.includes(t)),
+    (arr) => arr.every((t) => VALID_TAG_SET.has(t)),
     { message: "不正なタグが含まれています。" }
   ),
   period_from: z.string().max(30).optional(),
@@ -83,12 +83,12 @@ export async function POST(req: Request) {
     }
   }
 
-  // 勤務先が存在するか確認（pending/approved）
+  // 勤務先が承認済みであることを確認（pending は掲載前のため投稿不可）
   const { data: place, error: placeError } = await supabase
     .from("places")
     .select("id, status")
     .eq("id", d.place_id)
-    .in("status", ["pending", "approved"])
+    .eq("status", "approved")
     .maybeSingle();
 
   if (placeError) {
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   }
 
   if (!place) {
-    return NextResponse.json({ error: "指定した勤務先が見つかりません。" }, { status: 404 });
+    return NextResponse.json({ error: "指定した勤務先が見つかりません。承認済みの勤務先にのみ体験談を投稿できます。" }, { status: 404 });
   }
 
   const { data, error } = await supabase

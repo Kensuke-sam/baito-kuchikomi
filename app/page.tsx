@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const supabase = await createClient();
   const [{ data: places }, { count: approvedReviewCount }] = await Promise.all([
-    supabase.from("places").select("*").eq("status", "approved"),
+    supabase.from("places").select("id,name,address,nearest_station,lat,lng,area_tag,status").eq("status", "approved"),
     supabase
       .from("reviews")
       .select("*", { count: "exact", head: true })

@@ -128,7 +128,11 @@ export default async function PlaceDetailPage({ params }: Props) {
             <div key={res.id} className="glass-panel rounded-[24px] p-4 mb-2">
               <p className="text-xs font-semibold text-[var(--accent)] mb-1">【当事者コメント】</p>
               <p className="text-sm text-[var(--page-muted)] whitespace-pre-line">{res.body}</p>
-              <p className="text-xs text-[var(--page-muted)] mt-1">{res.created_at.slice(0, 10)}</p>
+              <p className="text-xs text-[var(--page-muted)] mt-1">
+                <time dateTime={res.created_at.slice(0, 10)}>
+                  {new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Tokyo" }).format(new Date(res.created_at))}
+                </time>
+              </p>
             </div>
           ))}
         </section>

@@ -137,5 +137,12 @@ export default function Map({ places, onPlaceClick }: Props) {
     );
   }
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full"
+      role="region"
+      aria-label="承認済みの勤務先を表示した地図。地点をクリックすると勤務先の詳細ページへ移動できます"
+    />
+  );
 }
