@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionSpotlight } from "@/components/ActionSpotlight";
-import { GuideCard } from "@/components/GuideCard";
 import { HubCard } from "@/components/HubCard";
 import { PromotionNotice } from "@/components/PromotionNotice";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import { isExternalHref } from "@/lib/partnerLinks";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 interface Props {
@@ -29,14 +29,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guide = getGuideBySlug(slug);
 
   if (!guide) {
-    return {
-      title: "記事が見つかりません",
-    };
+    return { title: "記事が見つかりません" };
   }
+
+  const pageUrl = `${getSiteUrl()}/guides/${guide.slug}`;
 
   return {
     title: guide.title,
     description: guide.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: guide.title,
+      description: guide.description,
+      url: pageUrl,
+      type: "article",
+      publishedTime: guide.publishedAt,
+      modifiedTime: guide.updatedAt,
+      locale: "ja_JP",
+    },
   };
 }
 
@@ -62,6 +72,7 @@ export default async function GuideDetailPage({ params }: Props) {
     "baito-yametai-daigakusei": "/images/guide-yametai.png",
     "black-baito-miwakekata": "/images/guide-miwakekata.png",
     "tanpatsu-baito-app-hikaku": "/images/guide-tanpatsu.png",
+    // 新規記事はバナー画像未制作のため非表示（bannerSrc が falsy なら画像ブロック自体がレンダリングされない）
   };
   const bannerSrc = guideBanners[guide.slug];
 
@@ -84,30 +95,11 @@ export default async function GuideDetailPage({ params }: Props) {
     },
   };
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "ホーム",
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "バイトの悩みガイド",
-        item: `${siteUrl}/guides`,
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: guide.title,
-        item: articleUrl,
-      },
-    ],
-  };
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "バイトの悩みガイド", path: "/guides" },
+    { name: guide.title, url: articleUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-5xl px-4 py-8 sm:py-10">
@@ -120,16 +112,16 @@ export default async function GuideDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">
           ホーム
         </Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/guides" className="hover:text-[var(--page-ink)]">
           バイトの悩みガイド
         </Link>
-        <span>/</span>
-        <span>{guide.category}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{guide.title}</span>
       </nav>
 
       <article className="section-frame overflow-hidden">
@@ -253,25 +245,6 @@ export default async function GuideDetailPage({ params }: Props) {
         </div>
         </div>
       </article>
-
-      <section className="mt-8">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <span className="eyebrow">次に読む</span>
-            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[var(--page-ink)]">
-              関連ガイド
-            </h2>
-          </div>
-          <Link href="/guides" className="secondary-button text-sm">
-            一覧へ戻る
-          </Link>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          {relatedGuides.map((relatedGuide) => (
-            <GuideCard key={relatedGuide.slug} guide={relatedGuide} />
-          ))}
-        </div>
-      </section>
 
       <section className="mt-8 grid gap-4 xl:grid-cols-3">
         <section className="section-frame p-6 sm:p-7">

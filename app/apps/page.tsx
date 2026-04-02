@@ -2,12 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HubCard } from "@/components/HubCard";
 import { getAppHubs } from "@/lib/hubs";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-export const metadata: Metadata = {
-  title: "アプリ・求人サービス比較",
-  description:
-    "タイミー系、シェアフル系、総合求人系など、大学生がバイト探しで使うサービスの見方をまとめたハブです。",
-};
+export function generateMetadata(): Metadata {
+  const pageUrl = `${getSiteUrl()}/apps`;
+  return {
+    title: "アプリ・求人サービス比較",
+    description:
+      "タイミー系、シェアフル系、総合求人系など、大学生がバイト探しで使うサービスの見方をまとめたハブです。",
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: "アプリ・求人サービス比較",
+      description: "タイミー系、シェアフル系、総合求人系など、大学生がバイト探しで使うサービスの見方をまとめたハブです。",
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "website",
+    },
+  };
+}
 
 export default function AppsPage() {
   const apps = getAppHubs();

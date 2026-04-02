@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cache } from "react";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { buildBreadcrumbSchema } from "@/lib/schema";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
 import { HubCard } from "@/components/HubCard";
 import Map from "@/components/Map";
@@ -10,25 +13,43 @@ import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 import type { Place, Review, OfficialResponse } from "@/lib/types";
 
+/** 同一リクエスト内で place を1回だけクエリする */
+const getPlace = cache(async (id: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("places")
+    .select("name, address")
+    .eq("id", id)
+    .eq("status", "approved")
+    .single();
+  return data;
+});
+
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: place } = await supabase
-    .from("places")
-    .select("name, address")
-    .eq("id", id)
-    .eq("status", "approved")
-    .single();
+  const place = await getPlace(id);
 
   if (!place) return { title: "勤務先が見つかりません" };
 
+  const pageUrl = `${getSiteUrl()}/places/${id}`;
+  const title = `${place.name} の体験談 | バイト体験談マップ`;
+  const description = `${place.name}（${place.address}）のアルバイト体験談・口コミ一覧`;
+
   return {
-    title: `${place.name} の体験談 | バイト体験談マップ`,
-    description: `${place.name}（${place.address}）のアルバイト体験談・口コミ一覧`,
+    title,
+    description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "article",
+    },
   };
 }
 
@@ -53,9 +74,21 @@ export default async function PlaceDetailPage({ params }: Props) {
   if (!place) return notFound();
 
   const p: Place = place;
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/places/${p.id}`;
+
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "体験談一覧", path: "/list" },
+    { name: `${p.name} の体験談`, url: pageUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-3xl px-3 py-8 sm:px-4 sm:py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
+      />
       {/* 勤務先情報 */}
       <div className="section-frame p-5 sm:p-6 mb-6">
         <span className="eyebrow">勤務先詳細</span>
@@ -95,7 +128,11 @@ export default async function PlaceDetailPage({ params }: Props) {
             <div key={res.id} className="glass-panel rounded-[24px] p-4 mb-2">
               <p className="text-xs font-semibold text-[var(--accent)] mb-1">【当事者コメント】</p>
               <p className="text-sm text-[var(--page-muted)] whitespace-pre-line">{res.body}</p>
-              <p className="text-xs text-[var(--page-muted)] mt-1">{res.created_at.slice(0, 10)}</p>
+              <p className="text-xs text-[var(--page-muted)] mt-1">
+                <time dateTime={res.created_at.slice(0, 10)}>
+                  {new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Asia/Tokyo" }).format(new Date(res.created_at))}
+                </time>
+              </p>
             </div>
           ))}
         </section>

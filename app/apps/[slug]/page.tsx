@@ -8,6 +8,7 @@ import { PromotionNotice } from "@/components/PromotionNotice";
 import { getRelatedGuides } from "@/lib/guides";
 import { getAppHubBySlug, getAppHubs, getHubPath, getSiblingHubs } from "@/lib/hubs";
 import { getPartnerLink, isExternalHref } from "@/lib/partnerLinks";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 interface Props {
@@ -22,7 +23,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const hub = getAppHubBySlug(slug);
   if (!hub) return { title: "ページが見つかりません" };
-  return { title: hub.title, description: hub.description };
+
+  const pageUrl = `${getSiteUrl()}/apps/${hub.slug}`;
+
+  return {
+    title: hub.title,
+    description: hub.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: hub.title,
+      description: hub.description,
+      url: pageUrl,
+      type: "article",
+      locale: "ja_JP",
+    },
+  };
 }
 
 export default async function AppDetailPage({ params }: Props) {
@@ -37,15 +52,11 @@ export default async function AppDetailPage({ params }: Props) {
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${getHubPath(hub)}`;
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "ホーム", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "アプリ・求人サービス比較", item: `${siteUrl}/apps` },
-      { "@type": "ListItem", position: 3, name: hub.title, item: pageUrl },
-    ],
-  };
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "アプリ・求人サービス比較", path: "/apps" },
+    { name: hub.title, url: pageUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-5xl px-4 py-8 sm:py-10">
@@ -54,12 +65,12 @@ export default async function AppDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">ホーム</Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/apps" className="hover:text-[var(--page-ink)]">アプリ・求人サービス比較</Link>
-        <span>/</span>
-        <span>{hub.shortTitle}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{hub.shortTitle}</span>
       </nav>
 
       <article className="section-frame p-6 sm:p-8">

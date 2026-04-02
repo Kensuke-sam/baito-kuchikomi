@@ -1,7 +1,7 @@
 /**
  * HTMLタグ・制御文字を除去してプレーンテキストに正規化する。
  * React はデフォルトでテキストをエスケープするが、
- * DB 保存前にも念のりクリーンにする。
+ * DB 保存前にも念のためクリーンにする。
  */
 export function sanitizeText(input: unknown): string {
   if (typeof input !== "string") return "";

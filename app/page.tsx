@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import type { Place } from "@/lib/types";
 import { FirstReviewCallout } from "@/components/FirstReviewCallout";
@@ -9,10 +10,14 @@ import Map from "@/components/Map";
 import { getFeaturedGuides } from "@/lib/guides";
 import { getAppHubs, getAreaHubs, getJobHubs } from "@/lib/hubs";
 
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
 export default async function HomePage() {
   const supabase = await createClient();
   const [{ data: places }, { count: approvedReviewCount }] = await Promise.all([
-    supabase.from("places").select("*").eq("status", "approved"),
+    supabase.from("places").select("id,name,address,nearest_station,lat,lng,area_tag,status").eq("status", "approved"),
     supabase
       .from("reviews")
       .select("*", { count: "exact", head: true })

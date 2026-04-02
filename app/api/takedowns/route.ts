@@ -5,14 +5,15 @@ import { createRateLimitHeaders, rateLimit, getRealIp } from "@/lib/rateLimit";
 import { sanitizeShortText, sanitizeText, sanitizeEmail, sanitizeUrl } from "@/lib/sanitize";
 import { TAKEDOWN_REASONS } from "@/lib/types";
 import { sendAdminNotification } from "@/lib/notifications";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-const VALID_REASONS = TAKEDOWN_REASONS as unknown as string[];
+const VALID_REASON_SET = new Set<string>(TAKEDOWN_REASONS);
 
 const schema = z.object({
   target_url:    z.string().url().max(2000),
   contact_name:  z.string().min(1).max(100),
   contact_email: z.string().email().max(254),
-  reason:        z.string().refine((r) => VALID_REASONS.includes(r), { message: "不正な理由です。" }),
+  reason:        z.string().refine((r) => VALID_REASON_SET.has(r), { message: "不正な理由です。" }),
   detail:        z.string().min(10).max(2000),
   evidence_url:  z.string().url().max(2000).optional().or(z.literal("")),
 });
@@ -49,6 +50,14 @@ export async function POST(req: Request) {
   if (!targetUrl || !contactName || !contactEmail || detail.length < 10) {
     return NextResponse.json(
       { error: "削除申請の入力内容を確認してください。" },
+      { status: 422 }
+    );
+  }
+
+  const siteOrigin = new URL(getSiteUrl()).origin;
+  if (!targetUrl.startsWith(siteOrigin + "/") && targetUrl !== siteOrigin) {
+    return NextResponse.json(
+      { error: "削除申請はこのサイトのURLのみ受け付けています。" },
       { status: 422 }
     );
   }

@@ -2,12 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HubCard } from "@/components/HubCard";
 import { getAreaHubs } from "@/lib/hubs";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-export const metadata: Metadata = {
-  title: "地域別バイトガイド",
-  description:
-    "東京、大阪、名古屋、福岡など、大学生が地域ごとにバイトを比較するときの見方をまとめたハブです。",
-};
+export function generateMetadata(): Metadata {
+  const pageUrl = `${getSiteUrl()}/areas`;
+  return {
+    title: "地域別バイトガイド",
+    description:
+      "東京、大阪、名古屋、福岡など、大学生が地域ごとにバイトを比較するときの見方をまとめたハブです。",
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: "地域別バイトガイド",
+      description: "東京、大阪、名古屋、福岡など、大学生が地域ごとにバイトを比較するときの見方をまとめたハブです。",
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "website",
+    },
+  };
+}
 
 export default function AreasPage() {
   const areas = getAreaHubs();

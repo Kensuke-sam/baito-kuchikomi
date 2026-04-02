@@ -6,14 +6,16 @@ import { sanitizeShortText, sanitizeText } from "@/lib/sanitize";
 import { REPORT_REASONS } from "@/lib/types";
 import { sendAdminNotification } from "@/lib/notifications";
 
-const VALID_REASONS = REPORT_REASONS as unknown as string[];
+const VALID_REASON_SET = new Set<string>(REPORT_REASONS);
 
 const schema = z.object({
   target_type: z.enum(["place", "review"]),
   target_id:   z.string().uuid(),
-  reason:      z.string().refine((r) => VALID_REASONS.includes(r), { message: "不正な理由です。" }),
+  reason:      z.string().refine((r) => VALID_REASON_SET.has(r), { message: "不正な理由です。" }),
   detail:      z.string().max(1000).optional(),
 });
+
+const AUTO_HIDE_THRESHOLD = 3;
 
 export async function POST(req: Request) {
   const ip = getRealIp(req);
@@ -101,7 +103,6 @@ export async function POST(req: Request) {
   }
 
   // 通報件数を確認して自動非表示の発動を通知に含める
-  const AUTO_HIDE_THRESHOLD = 3;
   const { count, error: reportCountError } = await supabase
     .from("reports")
     .select("*", { count: "exact", head: true })

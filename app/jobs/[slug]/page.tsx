@@ -8,6 +8,7 @@ import { PromotionNotice } from "@/components/PromotionNotice";
 import { getRelatedGuides } from "@/lib/guides";
 import { getHubPath, getJobHubBySlug, getJobHubs, getSiblingHubs } from "@/lib/hubs";
 import { getPartnerLink, isExternalHref } from "@/lib/partnerLinks";
+import { buildBreadcrumbSchema } from "@/lib/schema";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 interface Props {
@@ -24,9 +25,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!hub) return { title: "ページが見つかりません" };
 
+  const pageUrl = `${getSiteUrl()}/jobs/${hub.slug}`;
+
   return {
     title: hub.title,
     description: hub.description,
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: hub.title,
+      description: hub.description,
+      url: pageUrl,
+      type: "article",
+      locale: "ja_JP",
+    },
   };
 }
 
@@ -43,15 +54,11 @@ export default async function JobDetailPage({ params }: Props) {
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${getHubPath(hub)}`;
 
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "ホーム", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "職種別バイトガイド", item: `${siteUrl}/jobs` },
-      { "@type": "ListItem", position: 3, name: hub.title, item: pageUrl },
-    ],
-  };
+  const breadcrumbStructuredData = buildBreadcrumbSchema(
+    siteUrl,
+    { name: "職種別バイトガイド", path: "/jobs" },
+    { name: hub.title, url: pageUrl }
+  );
 
   return (
     <main className="app-shell mx-auto max-w-5xl px-4 py-8 sm:py-10">
@@ -60,12 +67,12 @@ export default async function JobDetailPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
+      <nav aria-label="パンくずリスト" className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[var(--page-muted)]">
         <Link href="/" className="hover:text-[var(--page-ink)]">ホーム</Link>
-        <span>/</span>
+        <span aria-hidden>/</span>
         <Link href="/jobs" className="hover:text-[var(--page-ink)]">職種別バイトガイド</Link>
-        <span>/</span>
-        <span>{hub.shortTitle}</span>
+        <span aria-hidden>/</span>
+        <span aria-current="page">{hub.shortTitle}</span>
       </nav>
 
       <article className="section-frame p-6 sm:p-8">

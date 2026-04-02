@@ -2,12 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HubCard } from "@/components/HubCard";
 import { getJobHubs } from "@/lib/hubs";
+import { getSiteUrl } from "@/lib/siteUrl";
 
-export const metadata: Metadata = {
-  title: "職種別バイトガイド",
-  description:
-    "コンビニ、居酒屋、カフェ、倉庫、スーパーなど、大学生が職種ごとのきつさや向き不向きを比べるためのハブです。",
-};
+export function generateMetadata(): Metadata {
+  const pageUrl = `${getSiteUrl()}/jobs`;
+  return {
+    title: "職種別バイトガイド",
+    description:
+      "コンビニ、居酒屋、カフェ、倉庫、スーパーなど、大学生が職種ごとのきつさや向き不向きを比べるためのハブです。",
+    alternates: { canonical: pageUrl },
+    openGraph: {
+      title: "職種別バイトガイド",
+      description: "コンビニ、居酒屋、カフェ、倉庫、スーパーなど、大学生が職種ごとのきつさや向き不向きを比べるためのハブです。",
+      url: pageUrl,
+      locale: "ja_JP",
+      type: "website",
+    },
+  };
+}
 
 export default function JobsPage() {
   const jobs = getJobHubs();

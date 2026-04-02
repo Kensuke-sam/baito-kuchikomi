@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const hubEntries: MetadataRoute.Sitemap = getAllHubs().map((hub) => ({
     url: `${siteUrl}${getHubPath(hub)}`,
-    lastModified: now,
+    lastModified: new Date(hub.updatedAt),
     changeFrequency: "weekly",
     priority: 0.8,
   }));
@@ -65,8 +65,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("status", "approved");
 
   if (error) {
+    // Supabase 障害時でもガイド・ハブのサイトマップだけは返す
     console.error("sitemap places fetch failed", error);
-    throw new Error("Failed to generate place sitemap entries.");
+    return [...staticEntries, ...guideEntries, ...hubEntries];
   }
 
   const placeEntries: MetadataRoute.Sitemap = (places ?? []).map((place) => ({
